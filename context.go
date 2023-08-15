@@ -5,7 +5,7 @@ import (
 	"github.com/ahmetson/config-lib"
 	ctxConfig "github.com/ahmetson/dev-lib/config"
 	"github.com/ahmetson/dev-lib/dep_manager"
-	"github.com/ahmetson/dev-lib/orchestra/dev"
+	"github.com/ahmetson/dev-lib/dev"
 	"github.com/ahmetson/log-lib"
 )
 
