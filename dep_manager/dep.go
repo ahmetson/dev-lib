@@ -1,4 +1,4 @@
-package dep
+package dep_manager
 
 import (
 	"fmt"
@@ -77,7 +77,7 @@ func (dep *Dep) Install(url string, logger *log.Logger) error {
 	// check for a source exist
 	srcExist, err := dep.srcExist(url)
 	if err != nil {
-		return fmt.Errorf("dep.srcExist(%s): %w", url, err)
+		return fmt.Errorf("dep_manager.srcExist(%s): %w", url, err)
 	}
 
 	logger.Info("Checking the source code", "srcExist", srcExist)
@@ -206,9 +206,9 @@ func (dep *Dep) onEnd(url string, logger *log.Logger) {
 	go func() {
 		err := <-dep.done
 		if err != nil {
-			logger.Error("dependency ended with error", "error", err, "dep", url)
+			logger.Error("dependency ended with error", "error", err, "dep_manager", url)
 		} else {
-			logger.Info("dependency ended successfully", "dep", url)
+			logger.Info("dependency ended successfully", "dep_manager", url)
 		}
 		dep.cmd = nil
 	}()
@@ -217,9 +217,9 @@ func (dep *Dep) onEnd(url string, logger *log.Logger) {
 // wait until the dependency is not exiting
 func (dep *Dep) wait(url string, logger *log.Logger) {
 	go func() {
-		logger.Info("waiting for dep to end", "dep", url)
+		logger.Info("waiting for dep_manager to end", "dep_manager", url)
 		err := dep.cmd.Wait()
-		logger.Error("dependency closed itself", "dep", url, "error", err)
+		logger.Error("dependency closed itself", "dep_manager", url, "error", err)
 		dep.done <- err
 	}()
 }

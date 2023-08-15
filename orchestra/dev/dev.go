@@ -40,7 +40,7 @@ import (
 	"fmt"
 	"github.com/ahmetson/config-lib"
 	ctxConfig "github.com/ahmetson/dev-lib/config"
-	"github.com/ahmetson/dev-lib/dep"
+	"github.com/ahmetson/dev-lib/dep_manager"
 	"github.com/ahmetson/handler-lib"
 	"path/filepath"
 	"strings"
@@ -49,7 +49,7 @@ import (
 // A Context handles the config of the contexts
 type Context struct {
 	engine       config.Interface
-	depManager   dep.Interface
+	depManager   dep_manager.Interface
 	controller   *handler.Controller
 	serviceReady bool
 	deps         map[string]string // id => url
@@ -77,7 +77,7 @@ func (ctx *Context) Config() config.Interface {
 	return ctx.engine
 }
 
-func (ctx *Context) SetDepManager(depManager dep.Interface) error {
+func (ctx *Context) SetDepManager(depManager dep_manager.Interface) error {
 	if ctx.engine == nil {
 		return fmt.Errorf("no configuration")
 	}
@@ -87,7 +87,7 @@ func (ctx *Context) SetDepManager(depManager dep.Interface) error {
 	return nil
 }
 
-func (ctx *Context) DepManager() dep.Interface {
+func (ctx *Context) DepManager() dep_manager.Interface {
 	return ctx.depManager
 }
 

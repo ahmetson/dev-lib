@@ -1,6 +1,6 @@
 //go:build windows
 
-package dep
+package dep_manager
 
 import (
 	"path/filepath"

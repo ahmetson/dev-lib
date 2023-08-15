@@ -1,7 +1,7 @@
 //go:build !windows
 // +build !windows
 
-package dep
+package dep_manager
 
 import (
 	"path/filepath"

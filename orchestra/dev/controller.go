@@ -25,18 +25,18 @@ func (ctx *Context) onClose(request message.Request, logger *log.Logger, _ ...*c
 		"todo", "close the main service",
 		"goal", "exit the application")
 
-	//for _, dep := range ctx.deps {
-	//if dep.cmd == nil || dep.cmd.Process == nil {
+	//for _, dep_manager := range ctx.deps {
+	//if dep_manager.cmd == nil || dep_manager.cmd.Process == nil {
 	//	continue
 	//}
 
 	// I expect that the killing process will release its resources as well.
-	//err := dep.cmd.Process.Kill()
+	//err := dep_manager.cmd.Process.Kill()
 	//if err != nil {
-	//	logger.Error("dep.cmd.Process.Kill", "error", err, "dep", dep.Url(), "command", "onClose")
-	//	return request.Fail(fmt.Sprintf(`dep("%s").cmd.Process.Kill: %v`, dep.Url(), err))
+	//	logger.Error("dep_manager.cmd.Process.Kill", "error", err, "dep_manager", dep_manager.Url(), "command", "onClose")
+	//	return request.Fail(fmt.Sprintf(`dep_manager("%s").cmd.Process.Kill: %v`, dep_manager.Url(), err))
 	//}
-	//logger.Info("dependency was closed", "url", dep.Url())
+	//logger.Info("dependency was closed", "url", dep_manager.Url())
 	//}
 
 	err := ctx.closeService(logger)

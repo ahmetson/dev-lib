@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/ahmetson/config-lib"
 	ctxConfig "github.com/ahmetson/dev-lib/config"
-	"github.com/ahmetson/dev-lib/dep"
+	"github.com/ahmetson/dev-lib/dep_manager"
 	"github.com/ahmetson/dev-lib/orchestra/dev"
 	"github.com/ahmetson/log-lib"
 )
@@ -12,8 +12,8 @@ import (
 type Interface interface {
 	SetConfig(config.Interface)
 	Config() config.Interface
-	SetDepManager(dep.Interface) error
-	DepManager() dep.Interface
+	SetDepManager(dep_manager.Interface) error
+	DepManager() dep_manager.Interface
 	Type() ctxConfig.ContextType
 }
 
@@ -37,9 +37,9 @@ func New(ctxType ctxConfig.ContextType) (Interface, error) {
 
 	ctx.SetConfig(engine)
 
-	depManager, err := dep.New(engine)
+	depManager, err := dep_manager.New(engine)
 	if err != nil {
-		return nil, fmt.Errorf("dep.new: %w", err)
+		return nil, fmt.Errorf("dep_manager.new: %w", err)
 	}
 
 	if err := ctx.SetDepManager(depManager); err != nil {
