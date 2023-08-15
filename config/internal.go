@@ -2,33 +2,13 @@ package config
 
 import (
 	"github.com/ahmetson/handler-lib/config"
-	"strings"
 )
 
-// UrlToFileName converts the given url to the file name. Simply it replaces the slashes with dots.
-//
-// Url returns the full url to connect to the orchestra.
-//
-// The orchestra url is defined from the main service's url.
-//
-// For example:
-//
-//	serviceUrl = "github.com/ahmetson/sample-service"
-//	contextUrl = "orchestra.github.com.ahmetson.sample-service"
-//
-// This controllerName is set as the handler's name in the config.
-// Then the handler package will generate an inproc:// url based on the handler name.
-func UrlToFileName(url string) string {
-	return strings.ReplaceAll(strings.ReplaceAll(url, "/", "."), "\\", ".")
-}
-
-func ManagerName(url string) string {
-	fileName := UrlToFileName(url)
+func ManagerName(fileName string) string {
 	return "manager." + fileName
 }
 
-func ContextName(url string) string {
-	fileName := UrlToFileName(url)
+func ContextName(fileName string) string {
 	return "orchestra." + fileName
 }
 
