@@ -9,37 +9,35 @@ package dev
 
 import (
 	"fmt"
-	client "github.com/ahmetson/client-lib"
+	"github.com/ahmetson/client-lib"
 	"github.com/ahmetson/common-lib/data_type/key_value"
 	"github.com/ahmetson/common-lib/message"
 	"github.com/ahmetson/handler-lib"
 	"github.com/ahmetson/handler-lib/command"
 	"github.com/ahmetson/log-lib"
-	"github.com/ahmetson/service-lib/config"
 )
 
 // onClose closing all the dependencies in the orchestra.
 func (ctx *Context) onClose(request message.Request, logger *log.Logger, _ ...*client.ClientSocket) message.Reply {
 	logger.Info("closing the orchestra",
 		"orchestra type", ctx.Type(),
-		"service", ctx.GetUrl(),
 		"todo", "close all dependencies if any",
 		"todo", "close the main service",
 		"goal", "exit the application")
 
-	for _, dep := range ctx.deps {
-		if dep.cmd == nil || dep.cmd.Process == nil {
-			continue
-		}
+	//for _, dep := range ctx.deps {
+	//if dep.cmd == nil || dep.cmd.Process == nil {
+	//	continue
+	//}
 
-		// I expect that the killing process will release its resources as well.
-		err := dep.cmd.Process.Kill()
-		if err != nil {
-			logger.Error("dep.cmd.Process.Kill", "error", err, "dep", dep.Url(), "command", "onClose")
-			return request.Fail(fmt.Sprintf(`dep("%s").cmd.Process.Kill: %v`, dep.Url(), err))
-		}
-		logger.Info("dependency was closed", "url", dep.Url())
-	}
+	// I expect that the killing process will release its resources as well.
+	//err := dep.cmd.Process.Kill()
+	//if err != nil {
+	//	logger.Error("dep.cmd.Process.Kill", "error", err, "dep", dep.Url(), "command", "onClose")
+	//	return request.Fail(fmt.Sprintf(`dep("%s").cmd.Process.Kill: %v`, dep.Url(), err))
+	//}
+	//logger.Info("dependency was closed", "url", dep.Url())
+	//}
 
 	err := ctx.closeService(logger)
 	if err != nil {
@@ -75,8 +73,8 @@ func (ctx *Context) Run(logger *log.Logger) error {
 		return fmt.Errorf("handler.SyncReplierType: %w", err)
 	}
 
-	config := config.InternalConfiguration(config.ContextName(ctx.GetUrl()))
-	replier.AddConfig(config, ctx.GetUrl())
+	//config := config.InternalConfiguration(config.ContextName(ctx.GetUrl()))
+	//replier.AddConfig(config, ctx.GetUrl())
 
 	closeRoute := command.NewRoute("close", ctx.onClose)
 	serviceReadyRoute := command.NewRoute("service-ready", ctx.onServiceReady)
@@ -105,30 +103,30 @@ func (ctx *Context) Close(logger *log.Logger) error {
 		logger.Warn("skipping, since orchestra.ControllerCategory is not initialised", "todo", "call orchestra.Run()")
 		return nil
 	}
-	contextName, contextPort := config.ClientUrlParameters(config.ContextName(ctx.GetUrl()))
-	contextClient, err := client.NewReq(contextName, contextPort, logger)
-	if err != nil {
-		logger.Error("client.NewReq", "error", err)
-		return fmt.Errorf("close the service by hand. client.NewReq: %w", err)
-	}
+	//contextName, contextPort := config.ClientUrlParameters(config.ContextName(ctx.GetUrl()))
+	//contextClient, err := client.NewReq(contextName, contextPort, logger)
+	//if err != nil {
+	//	logger.Error("client.NewReq", "error", err)
+	//	return fmt.Errorf("close the service by hand. client.NewReq: %w", err)
+	//}
 
-	closeRequest := &message.Request{
-		Command:    "close",
-		Parameters: key_value.Empty(),
-	}
+	//closeRequest := &message.Request{
+	//	Command:    "close",
+	//	Parameters: key_value.Empty(),
+	//}
 
-	_, err = contextClient.RequestRemoteService(closeRequest)
-	if err != nil {
-		logger.Error("contextClient.RequestRemoteService", "error", err)
-		return fmt.Errorf("close the service by hand. contextClient.RequestRemoteService: %w", err)
-	}
+	//_, err = contextClient.RequestRemoteService(closeRequest)
+	//if err != nil {
+	//	logger.Error("contextClient.RequestRemoteService", "error", err)
+	//	return fmt.Errorf("close the service by hand. contextClient.RequestRemoteService: %w", err)
+	//}
 
 	// release the orchestra parameters
-	err = contextClient.Close()
-	if err != nil {
-		logger.Error("contextClient.Close", "error", err)
-		return fmt.Errorf("contextClient.Close: %w", err)
-	}
+	//err = contextClient.Close()
+	//if err != nil {
+	//	logger.Error("contextClient.Close", "error", err)
+	//	return fmt.Errorf("contextClient.Close: %w", err)
+	//}
 
 	return nil
 }
@@ -139,27 +137,27 @@ func (ctx *Context) ServiceReady(logger *log.Logger) error {
 		logger.Warn("orchestra.ControllerCategory is not initialised", "todo", "call orchestra.Run()")
 		return nil
 	}
-	contextName, contextPort := config.ClientUrlParameters(config.ContextName(ctx.GetUrl()))
-	contextClient, err := client.NewReq(contextName, contextPort, logger)
-	if err != nil {
-		return fmt.Errorf("close the service by hand. client.NewReq: %w", err)
-	}
+	//contextName, contextPort := config.ClientUrlParameters(config.ContextName(ctx.GetUrl()))
+	//contextClient, err := client.NewReq(contextName, contextPort, logger)
+	//if err != nil {
+	//	return fmt.Errorf("close the service by hand. client.NewReq: %w", err)
+	//}
 
-	closeRequest := &message.Request{
-		Command:    "service-ready",
-		Parameters: key_value.Empty(),
-	}
+	//closeRequest := &message.Request{
+	//	Command:    "service-ready",
+	//	Parameters: key_value.Empty(),
+	//}
 
-	_, err = contextClient.RequestRemoteService(closeRequest)
-	if err != nil {
-		return fmt.Errorf("close the service by hand. contextClient.RequestRemoteService: %w", err)
-	}
+	//_, err = contextClient.RequestRemoteService(closeRequest)
+	//if err != nil {
+	//	return fmt.Errorf("close the service by hand. contextClient.RequestRemoteService: %w", err)
+	//}
 
 	// release the orchestra parameters
-	err = contextClient.Close()
-	if err != nil {
-		return fmt.Errorf("contextClient.Close: %w", err)
-	}
+	//err = contextClient.Close()
+	//if err != nil {
+	//	return fmt.Errorf("contextClient.Close: %w", err)
+	//}
 
 	return nil
 }
@@ -172,27 +170,27 @@ func (ctx *Context) closeService(logger *log.Logger) error {
 	}
 	logger.Info("main service is linted to the orchestra. send a signal to main service to be closed")
 
-	contextName, contextPort := config.ClientUrlParameters(config.ManagerName(ctx.GetUrl()))
-	contextClient, err := client.NewReq(contextName, contextPort, logger)
-	if err != nil {
-		return fmt.Errorf("close the service by hand. client.NewReq: %w", err)
-	}
+	//contextName, contextPort := config.ClientUrlParameters(config.ManagerName(ctx.GetUrl()))
+	//contextClient, err := client.NewReq(contextName, contextPort, logger)
+	//if err != nil {
+	//	return fmt.Errorf("close the service by hand. client.NewReq: %w", err)
+	//}
 
-	closeRequest := &message.Request{
-		Command:    "close",
-		Parameters: key_value.Empty(),
-	}
+	//closeRequest := &message.Request{
+	//	Command:    "close",
+	//	Parameters: key_value.Empty(),
+	//}
 
-	_, err = contextClient.RequestRemoteService(closeRequest)
-	if err != nil {
-		return fmt.Errorf("close the service by hand. contextClient.RequestRemoteService: %w", err)
-	}
+	//_, err = contextClient.RequestRemoteService(closeRequest)
+	//if err != nil {
+	//	return fmt.Errorf("close the service by hand. contextClient.RequestRemoteService: %w", err)
+	//}
 
 	// release the orchestra parameters
-	err = contextClient.Close()
-	if err != nil {
-		return fmt.Errorf("contextClient.Close: %w", err)
-	}
+	//err = contextClient.Close()
+	//if err != nil {
+	//	return fmt.Errorf("contextClient.Close: %w", err)
+	//}
 
 	return nil
 }

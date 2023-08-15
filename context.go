@@ -1,21 +1,12 @@
-package orchestra
+package context
 
 import (
 	"fmt"
 	"github.com/ahmetson/config-lib"
+	ctxConfig "github.com/ahmetson/dev-lib/config"
+	"github.com/ahmetson/dev-lib/dep"
+	"github.com/ahmetson/dev-lib/orchestra/dev"
 	"github.com/ahmetson/log-lib"
-	"github.com/ahmetson/service-lib/dep"
-	"github.com/ahmetson/service-lib/orchestra/dev"
-)
-
-type Type = string
-
-const (
-	// DevContext indicates that all dependency proxies are in the local machine
-	DevContext Type = "development"
-	// DefaultContext indicates that all dependencies are in any machine.
-	// It's unspecified.
-	DefaultContext Type = "default"
 )
 
 type Interface interface {
@@ -23,13 +14,13 @@ type Interface interface {
 	Config() config.Interface
 	SetDepManager(dep.Interface) error
 	DepManager() dep.Interface
-	Type() Type
+	Type() ctxConfig.ContextType
 }
 
 // A New orchestra
-func New(ctxType Type) (Interface, error) {
-	if ctxType != DevContext {
-		return nil, fmt.Errorf("only %s supported, not %s", DevContext, ctxType)
+func New(ctxType ctxConfig.ContextType) (Interface, error) {
+	if ctxType != ctxConfig.DevContext {
+		return nil, fmt.Errorf("only %s supported, not %s", ctxConfig.DevContext, ctxType)
 	}
 
 	ctx := dev.New()

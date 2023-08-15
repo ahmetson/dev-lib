@@ -1,4 +1,4 @@
-module github.com/ahmetson/service-lib
+module github.com/ahmetson/dev-lib
 
 go 1.19
 

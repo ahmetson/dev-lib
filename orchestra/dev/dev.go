@@ -39,9 +39,9 @@ package dev
 import (
 	"fmt"
 	"github.com/ahmetson/config-lib"
+	ctxConfig "github.com/ahmetson/dev-lib/config"
+	"github.com/ahmetson/dev-lib/dep"
 	"github.com/ahmetson/handler-lib"
-	"github.com/ahmetson/service-lib/dep"
-	"github.com/ahmetson/service-lib/orchestra"
 	"path/filepath"
 	"strings"
 )
@@ -91,8 +91,8 @@ func (ctx *Context) DepManager() dep.Interface {
 	return ctx.depManager
 }
 
-func (ctx *Context) Type() orchestra.Type {
-	return orchestra.DevContext
+func (ctx *Context) Type() ctxConfig.ContextType {
+	return ctxConfig.DevContext
 }
 
 //
