@@ -42,11 +42,6 @@ func NewDev(srcPath string, binPath string) (*Dep, error) {
 	return &Dep{Src: srcPath, Bin: binPath}, nil
 }
 
-func (dep *Dep) prepareSrcPath(url string) error {
-	dir := filepath.Dir(dep.srcPath(url))
-	return path.MakeDir(dir)
-}
-
 // Installed checks is the binary exist.
 func (dep *Dep) Installed(url string) bool {
 	binPath := path.BinPath(dep.Bin, urlToFileName(url))
@@ -54,7 +49,7 @@ func (dep *Dep) Installed(url string) bool {
 	return exists
 }
 
-// Install loads the dependency in url.
+// Install loads the dependency source code, and builds it.
 func (dep *Dep) Install(url string, logger *log.Logger) error {
 	logger.Info("Starting the installation of the dependency", "url", url)
 
@@ -74,12 +69,6 @@ func (dep *Dep) Install(url string, logger *log.Logger) error {
 		}
 
 		return nil
-	}
-
-	// first prepare the src directory
-	err = dep.prepareSrcPath(url)
-	if err != nil {
-		return fmt.Errorf("prepareSrcPath: %w", err)
 	}
 
 	logger.Info("download the source code from remote repository")

@@ -84,9 +84,8 @@ func (test *TestDepSuite) TestPath() {
 	//test.Suite.True(exist)
 }
 
-// All methods that begin with "Test" are run as tests within a
-// suite.
-func (test *TestDepSuite) TestUtils() {
+// TestUrlToFileName tests the utility function that converts the URL into the file name.
+func (test *TestDepSuite) TestUrlToFileName() {
 	test.logger.Info("Test utils")
 	url := "github.com/ahmetson/test-ext"
 	fileName := "github.com.ahmetson.test-ext"
