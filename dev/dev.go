@@ -43,8 +43,6 @@ import (
 	"github.com/ahmetson/dev-lib/dep_manager"
 	"github.com/ahmetson/handler-lib"
 	"github.com/ahmetson/log-lib"
-	"path/filepath"
-	"strings"
 )
 
 // A Context handles the config of the contexts
@@ -107,6 +105,7 @@ func (ctx *Context) Config() config.Interface {
 	return ctx.engine
 }
 
+// SetDepManager sets the dependency manager in the context.
 func (ctx *Context) SetDepManager(depManager dep_manager.Interface) error {
 	if ctx.engine == nil {
 		return fmt.Errorf("no configuration")
@@ -117,10 +116,12 @@ func (ctx *Context) SetDepManager(depManager dep_manager.Interface) error {
 	return nil
 }
 
+// DepManager returns the dependency manager
 func (ctx *Context) DepManager() dep_manager.Interface {
 	return ctx.depManager
 }
 
+// Type returns the context type. Useful to identify contexts in the generic functions.
 func (ctx *Context) Type() ctxConfig.ContextType {
 	return ctxConfig.DevContext
 }
@@ -206,19 +207,19 @@ func (ctx *Context) Type() ctxConfig.ContextType {
 //		return nil
 //	}
 //}
-
-// validateServicePath returns an error if the path is not a valid .yml link
-func validateServicePath(path string) error {
-	if len(path) < 5 || len(filepath.Base(path)) < 5 {
-		return fmt.Errorf("path is too short")
-	}
-	_, found := strings.CutSuffix(path, ".yml")
-	if !found {
-		return fmt.Errorf("the path should end with '.yml'")
-	}
-
-	return nil
-}
+//
+//// validateServicePath returns an error if the path is not a valid .yml link
+//func validateServicePath(path string) error {
+//	if len(path) < 5 || len(filepath.Base(path)) < 5 {
+//		return fmt.Errorf("path is too short")
+//	}
+//	_, found := strings.CutSuffix(path, ".yml")
+//	if !found {
+//		return fmt.Errorf("the path should end with '.yml'")
+//	}
+//
+//	return nil
+//}
 
 //func createYaml(configs ...*config.Service) key_value.KeyValue {
 //	var services = configs
