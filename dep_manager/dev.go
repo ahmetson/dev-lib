@@ -72,11 +72,11 @@ func (dep *Dep) Install(url string, logger *log.Logger) error {
 		return nil
 	}
 
-	logger.Info("download the source code from remote repository")
+	logger.Info("downloadSrc the source code from remote repository")
 
-	err = dep.cloneSrc(url, logger)
+	err = dep.downloadSrc(url, logger)
 	if err != nil {
-		return fmt.Errorf("cloneSrc: %w", err)
+		return fmt.Errorf("downloadSrc: %w", err)
 	}
 
 	err = dep.build(url, logger)
@@ -91,6 +91,7 @@ func (dep *Dep) srcPath(url string) string {
 	return filepath.Join(dep.Src, urlToFileName(url))
 }
 
+// srcExist checks is the source code exist or not
 func (dep *Dep) srcExist(url string) (bool, error) {
 	dataPath := dep.srcPath(url)
 	exists, err := path.DirExist(dataPath)
@@ -216,7 +217,8 @@ func convertToGitUrl(rawUrl string) (string, error) {
 	return absPath, nil
 }
 
-func (dep *Dep) cloneSrc(url string, logger *log.Logger) error {
+// downloadSrc gets the remote source code using Git
+func (dep *Dep) downloadSrc(url string, logger *log.Logger) error {
 	gitUrl, err := convertToGitUrl(url)
 	if err != nil {
 		return fmt.Errorf("convertToGitUrl(%s): %w", url, err)
