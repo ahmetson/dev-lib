@@ -19,9 +19,11 @@ type TestDepSuite struct {
 	suite.Suite
 
 	logger     *log.Logger
-	dep        *DepManager
-	currentDir string
-	url        string
+	dep        *DepManager          // the manager to test
+	currentDir string               // executable to store the binaries and source codes
+	url        string               // dependency source code
+	id         string               // the id of the dependency
+	parent     *clientConfig.Client // the info about the service to which dependency should connect
 }
 
 // Make sure that Account is set to five
@@ -45,6 +47,13 @@ func (test *TestDepSuite) SetupTest() {
 
 	// A valid source code that we want to download
 	test.url = "github.com/ahmetson/test-manager"
+
+	test.id = "test-manager"
+	test.parent = &clientConfig.Client{
+		Url:  "dev-lib",
+		Id:   "parent",
+		Port: 120,
+	}
 }
 
 // Test_0_New tests the creation of the DepManager managers
@@ -255,13 +264,6 @@ func (test *TestDepSuite) Test_19_InvalidCompile() {
 func (test *TestDepSuite) Test_20_Run() {
 	s := &test.Suite
 
-	id := "test-manager"
-	parent := &clientConfig.Client{
-		Url:  "dev-lib",
-		Id:   "parent",
-		Port: 120,
-	}
-
 	src, err := dep.New(test.url)
 	s.Require().NoError(err)
 
@@ -270,7 +272,7 @@ func (test *TestDepSuite) Test_20_Run() {
 	s.NoError(err)
 
 	// Let's run it, it should exit immediately
-	err = test.dep.Run(src.Url, id, parent, test.logger)
+	err = test.dep.Run(src.Url, test.id, test.parent, test.logger)
 	s.Require().NoError(err)
 
 	// Just to see the exit message
