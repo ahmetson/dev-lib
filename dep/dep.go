@@ -42,7 +42,6 @@ func convertToGitUrl(rawUrl string) (string, error) {
 	}
 
 	absPath := "https://" + rawUrl + ".git"
-	fmt.Printf("%s\n", absPath)
 	URL, err := url.ParseRequestURI(absPath)
 	if err != nil {
 		return "", fmt.Errorf("invalid '%s' url: %w", rawUrl, err)
