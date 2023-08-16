@@ -314,6 +314,49 @@ func (test *TestDepSuite) Test_21_RunError() {
 	s.NoError(err)
 }
 
+// Test_22_Running checks that service is running
+func (test *TestDepSuite) Test_22_Running() {
+	s := &test.Suite
+
+	client := &clientConfig.Client{
+		Url:  "test-manager",
+		Id:   test.id,
+		Port: 6000,
+	}
+
+	src, err := dep.New(test.url)
+	s.Require().NoError(err)
+	src.SetBranch("server") // the sample server is written in this branch.
+
+	// First, install the manager
+	err = test.dep.Install(src, test.logger)
+	s.NoError(err)
+
+	// Let's run it
+	err = test.dep.Run(src.Url, test.id, test.parent, test.logger)
+	s.Require().NoError(err)
+
+	// waiting for initialization...
+	time.Sleep(time.Millisecond * 200)
+	s.Require().NotNil(test.dep.cmd) // cmd == nil indicates that the program was closed
+
+	// Check is the service running
+	running, err := test.dep.Running(client)
+	s.Require().NoError(err)
+	s.True(running)
+
+	// service is running two seconds. after that running should return false
+	time.Sleep(time.Second * 2)
+	s.Require().Nil(test.dep.cmd) // cmd == nil indicates that the program was closed
+	running, err = test.dep.Running(client)
+	s.Require().NoError(err)
+	s.False(running)
+
+	// Clean out the installed files
+	err = test.dep.Uninstall(src)
+	s.NoError(err)
+}
+
 // In order for 'go test' to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run
 func TestDep(t *testing.T) {
