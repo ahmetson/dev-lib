@@ -8,6 +8,7 @@ import (
 	"github.com/ahmetson/log-lib"
 	"github.com/ahmetson/os-lib/path"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/pebbe/zmq4"
 	"os/exec"
 	"path/filepath"
@@ -193,15 +194,25 @@ func (dep *DepManager) wait(url string, logger *log.Logger) {
 // downloadSrc gets the remote source code using Git
 func (dep *DepManager) downloadSrc(src *dep.Src, logger *log.Logger) error {
 	srcUrl := dep.srcPath(src.Url)
-	_, err := git.PlainClone(srcUrl, false, &git.CloneOptions{
+
+	options := &git.CloneOptions{
 		URL:      src.GitUrl,
 		Progress: logger,
-	})
+	}
+
+	if len(src.Branch) > 0 {
+		options.ReferenceName = plumbing.NewBranchReferenceName(src.Branch)
+	}
+
+	repo, err := git.PlainClone(srcUrl, false, options)
 
 	if err != nil {
 		return fmt.Errorf("git.PlainClone --url %s --o %s: %w", src.Url, srcUrl, err)
 	}
 
+
+	return nil
+}
 	return nil
 }
 
