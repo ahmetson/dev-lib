@@ -120,7 +120,7 @@ func (dep *Dep) Running(c *clientConfig.Client) (bool, error) {
 	return bindErr != nil, nil
 }
 
-// builds the application
+// build the application from source code.
 func (dep *Dep) build(url string, logger *log.Logger) error {
 	srcUrl := dep.srcPath(url)
 	binUrl := path.BinPath(dep.Bin, urlToFileName(url))

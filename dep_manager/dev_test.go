@@ -18,6 +18,7 @@ type TestDepSuite struct {
 	logger     *log.Logger
 	dep        *Dep
 	currentDir string
+	url        string
 }
 
 // Make sure that Account is set to five
@@ -92,25 +93,8 @@ func (test *TestDepSuite) TestConvertToGitUrl() {
 
 }
 
-// TestPaths tests the utility functions related to the paths
-func (test *TestDepSuite) TestPaths() {
-	url := "github.com/ahmetson/test"
-	expected := filepath.Join(test.dep.Src, "github.com.ahmetson.test")
-	test.Suite.Equal(expected, test.dep.srcPath(url))
-
-	//execPath, err := path.CurrentDir()
-	//test.Suite.NoError(err)
-	//test.dep.Src = execPath
-	//url = "config"
-	//test.logger.Info("the source path", "path", test.dep.srcPath(url))
-	//exist, err := test.dep.srcExist(url)
-	//test.Suite.NoError(err)
-	//test.Suite.True(exist)
-}
-
 // TestUrlToFileName tests the utility function that converts the URL into the file name.
 func (test *TestDepSuite) TestUrlToFileName() {
-	test.logger.Info("Test utils")
 	url := "github.com/ahmetson/test-ext"
 	fileName := "github.com.ahmetson.test-ext"
 	test.Require().Equal(urlToFileName(url), fileName)
@@ -125,8 +109,45 @@ func (test *TestDepSuite) TestUrlToFileName() {
 	// with space
 	url = "::github.com/ahmetson/  test-ext  "
 	test.Require().Equal(urlToFileName(url), fileName)
+}
 
-	test.logger.Info("url to file name", "url", invalid, "filename", urlToFileName(invalid))
+// TestSourcePath tests the utility functions related to the paths
+func (test *TestDepSuite) TestSourcePath() {
+	url := "github.com/ahmetson/test-manager"
+	expected := filepath.Join(test.dep.Src, "github.com.ahmetson.test-manager")
+	test.Suite.Equal(expected, test.dep.srcPath(url))
+}
+
+// TestDownload makes sure to downloadSrc the remote repository into the context.
+// This is the first part of Install.
+// The second part of Install is building.
+//
+// Tests Dep.downloadSrc and srcExist.
+func (test *TestDepSuite) TestDownload() {
+	s := &test.Suite
+
+	// A valid source code that we want to download
+	test.url = "github.com/ahmetson/test-manager"
+
+	// There should not be any source code before downloading
+	exist, err := test.dep.srcExist(test.url)
+	s.NoError(err)
+	s.False(exist)
+
+	// download the source code
+	err = test.dep.downloadSrc(test.url, test.logger)
+	s.NoError(err)
+
+	// There should be a source code
+	exist, _ = test.dep.srcExist(test.url)
+	s.True(exist)
+
+	//
+	// Testing the failures
+	//
+	url := "github.com/ahmetson/no-repo" // this repo doesn't exist
+	err = test.dep.downloadSrc(url, test.logger)
+	s.Error(err)
 }
 
 // In order for 'go test' to run this suite, we need to create
