@@ -186,6 +186,48 @@ func (test *TestDepSuite) Test_6_DeleteBin() {
 	s.False(exist)
 }
 
+// Test_7_Install is the combination of Test_3_Download and Test_4_Build.
+func (test *TestDepSuite) Test_7_Install() {
+	s := &test.Suite
+
+	src, err := dep.New(test.url)
+	s.NoError(err)
+
+	// There should not be installed binary
+	// The binary should be presented
+	// There should not be any binary before building
+	exist := test.dep.Installed(test.url)
+	s.False(exist)
+
+	// Install the dependency
+	err = test.dep.Install(src, test.logger)
+	s.NoError(err)
+
+	// The binary should exist
+	exist = test.dep.Installed(test.url)
+	s.True(exist)
+}
+
+// Test_8_Uninstall is the combination of Test_5_DeleteSrc and Test_6_DeleteBin.
+func (test *TestDepSuite) Test_8_Uninstall() {
+	s := &test.Suite
+
+	src, err := dep.New(test.url)
+	s.NoError(err)
+
+	// Test_7_Install should install the binary.
+	exist := test.dep.Installed(test.url)
+	s.Require().True(exist)
+
+	// Uninstall
+	err = test.dep.Uninstall(src, test.logger)
+	s.NoError(err)
+
+	// After uninstallation, we should not have the binary
+	exist = test.dep.Installed(test.url)
+	s.False(exist)
+}
+
 // In order for 'go test' to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run
 func TestDep(t *testing.T) {
