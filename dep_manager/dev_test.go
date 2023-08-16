@@ -276,6 +276,10 @@ func (test *TestDepSuite) Test_20_Run() {
 	// Just to see the exit message
 	time.Sleep(time.Second)
 	s.Require().NoError(test.dep.exitErr)
+
+	// Clean out the installed files
+	err = test.dep.Uninstall(src)
+	s.NoError(err)
 }
 
 // In order for 'go test' to run this suite, we need to create
