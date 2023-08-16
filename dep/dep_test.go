@@ -68,7 +68,7 @@ func (test *TestDepSuite) Test_1_ConvertToGitUrl() {
 
 }
 
-func (test *TestDepSuite) Test_1_SetBranch() {
+func (test *TestDepSuite) Test_2_SetBranch() {
 	s := &test.Suite
 	branch := "main"
 
