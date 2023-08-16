@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -57,15 +58,14 @@ func (dep *Dep) prepareSrcPath(url string) error {
 	return path.MakePath(dir)
 }
 
-func (dep *Dep) prepareBinPath(url string) error {
-	dir := filepath.Dir(dep.binPath(url))
-	return path.MakePath(dir)
+func (dep *Dep) prepareBinPath() error {
+	return path.MakePath(dep.Bin)
 }
 
 // Installed checks the binary exist.
 // Orchestra passes BinPath(url)
 func (dep *Dep) Installed(url string) bool {
-	binPath := dep.binPath(url)
+	binPath := path.BinPath(dep.Bin, urlToFileName(url))
 	exists, _ := path.FileExists(binPath)
 	return exists
 }
@@ -148,13 +148,13 @@ func (dep *Dep) Running(c *clientConfig.Client) (bool, error) {
 // builds the application
 func (dep *Dep) build(url string, logger *log.Logger) error {
 	// first need to prepare the directory by creating it
-	err := dep.prepareBinPath(url)
+	err := dep.prepareBinPath()
 	if err != nil {
 		return fmt.Errorf("prepareBinPath: %w", err)
 	}
 
 	srcUrl := dep.srcPath(url)
-	binUrl := dep.binPath(url)
+	binUrl := path.BinPath(dep.Bin, urlToFileName(url))
 
 	logger.Info("building", "src", srcUrl, "bin", binUrl)
 
@@ -176,7 +176,7 @@ func (dep *Dep) build(url string, logger *log.Logger) error {
 
 // Run downloads the binary if it wasn't.
 func (dep *Dep) Run(url string, id string, parent *clientConfig.Client, logger *log.Logger) error {
-	binUrl := dep.binPath(url)
+	binUrl := path.BinPath(dep.Bin, urlToFileName(url))
 	configFlag := fmt.Sprintf("--url=%s", url)
 	idFlag := fmt.Sprintf("--id=%s", id)
 	parentFlag := fmt.Sprintf("--parent=%s", client.ClientUrl(parent.Id, parent.Port))
@@ -282,5 +282,6 @@ func cleanBuild(srcUrl string, logger *log.Logger) error {
 // This controllerName is set as the handler's name in the config.
 // Then the handler package will generate an inproc:// url based on the handler name.
 func urlToFileName(url string) string {
-	return strings.ReplaceAll(strings.ReplaceAll(url, "/", "."), "\\", ".")
+	str := strings.ReplaceAll(strings.ReplaceAll(url, "/", "."), "\\", ".")
+	return regexp.MustCompile(`[^a-zA-Z0-9-_.]+`).ReplaceAllString(str, "")
 }

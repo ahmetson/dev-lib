@@ -22,7 +22,7 @@ require (
 	github.com/ahmetson/log-lib v0.0.0-20230814152407-68a090e4a798
 	github.com/ahmetson/os-lib v0.0.0-20230814151458-0e1874b6df31
 	github.com/go-git/go-git/v5 v5.8.0
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.4
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -69,6 +69,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.15.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
