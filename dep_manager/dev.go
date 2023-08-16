@@ -19,8 +19,9 @@ import (
 
 // A DepManager Manager in the config.DevContext context
 type DepManager struct {
-	cmd  *exec.Cmd
-	done chan error
+	cmd     *exec.Cmd
+	done    chan error
+	exitErr error
 
 	Src string `json:"SERVICE_DEPS_SRC"`
 	Bin string `json:"SERVICE_DEPS_BIN"`
@@ -139,8 +140,9 @@ func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client, l
 
 	logger.Info("running", "command", binUrl, "arguments", args)
 
+	dep.exitErr = nil
 	dep.done = make(chan error, 1)
-	dep.onEnd(url, logger)
+	dep.onStop()
 
 	cmd := exec.Command(binUrl, args...)
 	cmd.Stdout = logger
@@ -155,20 +157,16 @@ func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client, l
 	return nil
 }
 
-// Call it before starting the dependency with os/exec.Start
-func (dep *DepManager) onEnd(url string, logger *log.Logger) {
+// onStop invoked when the dependency stops. It cleans out the dependency parameters.
+func (dep *DepManager) onStop() {
 	go func() {
 		err := <-dep.done
-		if err != nil {
-			logger.Error("dependency ended with error", "error", err, "dep_manager", url)
-		} else {
-			logger.Info("dependency ended successfully", "dep_manager", url)
-		}
+		dep.exitErr = err
 		dep.cmd = nil
 	}()
 }
 
-// wait until the dependency is not exiting
+// wait until the dependency stops
 func (dep *DepManager) wait(url string, logger *log.Logger) {
 	go func() {
 		logger.Info("waiting for dep_manager to end", "dep_manager", url)
