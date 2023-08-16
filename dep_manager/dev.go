@@ -112,8 +112,6 @@ func (dep *DepManager) build(url string, logger *log.Logger) error {
 	srcUrl := dep.srcPath(url)
 	binUrl := path.BinPath(dep.Bin, urlToFileName(url))
 
-	logger.Info("building", "src", srcUrl, "bin", binUrl)
-
 	err := cleanBuild(srcUrl, logger)
 	if err != nil {
 		return fmt.Errorf("cleanBuild(%s): %w", srcUrl, err)
@@ -234,7 +232,7 @@ func (dep *DepManager) deleteBin(url string) error {
 // Trying to uninstall already running application will fail.
 //
 // Uninstall will omit if no binary or source code exists.
-func (dep *DepManager) Uninstall(src *dep.Src, logger *log.Logger) error {
+func (dep *DepManager) Uninstall(src *dep.Src) error {
 	exist, err := dep.srcExist(src.Url)
 	if err != nil {
 		return fmt.Errorf("dep_manager.exist(%s): %w", src.Url, err)

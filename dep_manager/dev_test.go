@@ -220,7 +220,7 @@ func (test *TestDepSuite) Test_8_Uninstall() {
 	s.Require().True(exist)
 
 	// Uninstall
-	err = test.dep.Uninstall(src, test.logger)
+	err = test.dep.Uninstall(src)
 	s.NoError(err)
 
 	// After uninstallation, we should not have the binary
