@@ -40,6 +40,8 @@ func (test *TestDepSuite) SetupTest() {
 		Bin: binPath,
 	}
 
+	// A valid source code that we want to download
+	test.url = "github.com/ahmetson/test-manager"
 }
 
 // TestNew tests the creation of the Dep managers
@@ -125,9 +127,6 @@ func (test *TestDepSuite) TestSourcePath() {
 // Tests Dep.downloadSrc and srcExist.
 func (test *TestDepSuite) TestDownload() {
 	s := &test.Suite
-
-	// A valid source code that we want to download
-	test.url = "github.com/ahmetson/test-manager"
 
 	// There should not be any source code before downloading
 	exist, err := test.dep.srcExist(test.url)
