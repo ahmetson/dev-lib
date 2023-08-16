@@ -152,7 +152,7 @@ func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client, l
 		return fmt.Errorf("cmd.Start: %w", err)
 	}
 	dep.cmd = cmd
-	dep.wait(url, logger)
+	dep.wait()
 
 	return nil
 }
@@ -167,12 +167,9 @@ func (dep *DepManager) onStop() {
 }
 
 // wait until the dependency stops
-func (dep *DepManager) wait(url string, logger *log.Logger) {
+func (dep *DepManager) wait() {
 	go func() {
-		logger.Info("waiting for dep_manager to end", "dep_manager", url)
-		err := dep.cmd.Wait()
-		logger.Error("dependency closed itself", "dep_manager", url, "error", err)
-		dep.done <- err
+		dep.done <- dep.cmd.Wait()
 	}()
 }
 
