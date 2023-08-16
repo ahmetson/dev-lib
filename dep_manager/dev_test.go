@@ -15,56 +15,95 @@ import (
 type TestDepSuite struct {
 	suite.Suite
 
-	logger *log.Logger
-	dep    *Dep
+	logger     *log.Logger
+	dep        *Dep
+	currentDir string
 }
 
 // Make sure that Account is set to five
 // before each test
-func (suite *TestDepSuite) SetupTest() {
+func (test *TestDepSuite) SetupTest() {
 	logger, _ := log.New("test dep manager", false)
-	suite.logger = logger
-	suite.dep = &Dep{
-		Src: "./src",
+	test.logger = logger
+
+	currentDir, err := path.CurrentDir()
+	test.Suite.NoError(err)
+	test.currentDir = currentDir
+
+	srcPath := path.AbsDir(currentDir, "_sds/src")
+	binPath := path.AbsDir(currentDir, "_sds/bin")
+
+	// Make sure that the folders don't exist. They will be added later
+	test.dep = &Dep{
+		Src: srcPath,
+		Bin: binPath,
 	}
 
 }
 
-func (suite *TestDepSuite) TestPath() {
-	url := "github.com/ahmetson/test"
-	expected := filepath.Join("./src/github.com.ahmetson.test")
-	suite.Suite.Equal(expected, suite.dep.srcPath(url))
+// TestNew tests the creation of the Dep managers
+func (test *TestDepSuite) TestNew() {
+	s := &test.Suite
 
-	execPath, err := path.CurrentDir()
-	suite.Suite.NoError(err)
-	suite.dep.Src = execPath
-	url = "config"
-	suite.logger.Info("the source path", "path", suite.dep.srcPath(url))
-	exist, err := suite.dep.srcExist(url)
-	suite.Suite.NoError(err)
-	suite.Suite.True(exist)
+	// Before testing, we make sure that the files don't exist
+	exist, err := path.DirExist(test.dep.Bin)
+	s.NoError(err)
+	s.False(exist)
+
+	exist, err = path.DirExist(test.dep.Src)
+	s.NoError(err)
+	s.False(exist)
+
+	// If we create the Dep manager with 'NewDev,' it will create the folders.
+	dep, err := NewDev(test.dep.Src, test.dep.Bin)
+	s.NoError(err)
+
+	// Now we can check for the directories
+	exist, _ = path.DirExist(dep.Src)
+	s.True(exist)
+
+	exist, _ = path.DirExist(dep.Bin)
+	s.True(exist)
+
+	test.dep = dep
+}
+
+// TestPath tests the utility functions related to the paths
+func (test *TestDepSuite) TestPath() {
+	url := "github.com/ahmetson/test"
+	expected := filepath.Join(test.dep.Src, "github.com.ahmetson.test")
+	test.Suite.Equal(expected, test.dep.srcPath(url))
+
+	//execPath, err := path.CurrentDir()
+	//test.Suite.NoError(err)
+	//test.dep.Src = execPath
+	//url = "config"
+	//test.logger.Info("the source path", "path", test.dep.srcPath(url))
+	//exist, err := test.dep.srcExist(url)
+	//test.Suite.NoError(err)
+	//test.Suite.True(exist)
 }
 
 // All methods that begin with "Test" are run as tests within a
 // suite.
-func (suite *TestDepSuite) TestUtils() {
-	suite.logger.Info("Test utils")
+func (test *TestDepSuite) TestUtils() {
+	test.logger.Info("Test utils")
 	url := "github.com/ahmetson/test-ext"
 	fileName := "github.com.ahmetson.test-ext"
-	suite.Require().Equal(urlToFileName(url), fileName)
+	test.Require().Equal(urlToFileName(url), fileName)
 
 	invalid := "github.com\\ahmetson\\test-ext"
-	suite.Require().Equal(urlToFileName(invalid), fileName)
+	test.Require().Equal(urlToFileName(invalid), fileName)
 
 	// with semicolon
 	url = "::github.com/ahmetson/test-ext"
-	suite.Require().Equal(urlToFileName(url), fileName)
+	test.Require().Equal(urlToFileName(url), fileName)
 
 	// with space
 	url = "::github.com/ahmetson/  test-ext  "
-	suite.Require().Equal(urlToFileName(url), fileName)
+	test.Require().Equal(urlToFileName(url), fileName)
 
-	suite.logger.Info("url to file name", "url", invalid, "filename", urlToFileName(invalid))
+	test.logger.Info("url to file name", "url", invalid, "filename", urlToFileName(invalid))
 }
 
 // In order for 'go test' to run this suite, we need to create

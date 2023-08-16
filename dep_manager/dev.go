@@ -26,8 +26,10 @@ type Dep struct {
 	parent *clientConfig.Client
 }
 
-// NewDev dependency in the orchestra. If the dependency already exists, it will return an error.
-// The created dependency will be added to the orchestra.
+// NewDev creates the dep manager in the Dev context.
+//
+// It will prepare the directories for source codes and binary.
+// If preparation fails, it will throw an error.
 func NewDev(srcPath string, binPath string) (*Dep, error) {
 	if err := path.MakeDir(binPath); err != nil {
 		return nil, fmt.Errorf("path.MakeDir(%s): %w", binPath, err)
@@ -45,8 +47,7 @@ func (dep *Dep) prepareSrcPath(url string) error {
 	return path.MakeDir(dir)
 }
 
-// Installed checks the binary exist.
-// Orchestra passes BinPath(url)
+// Installed checks is the binary exist.
 func (dep *Dep) Installed(url string) bool {
 	binPath := path.BinPath(dep.Bin, urlToFileName(url))
 	exists, _ := path.FileExist(binPath)
