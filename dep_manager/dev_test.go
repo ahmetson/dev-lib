@@ -228,6 +228,27 @@ func (test *TestDepSuite) Test_8_Uninstall() {
 	s.False(exist)
 }
 
+// Test_8_Uninstall is the combination of Test_5_DeleteSrc and Test_6_DeleteBin.
+func (test *TestDepSuite) Test_9_InvalidCompile() {
+	s := &test.Suite
+
+	src, err := dep.New(test.url)
+	s.NoError(err)
+	src.SetBranch("uncompilable")
+
+	// download the src
+	err = test.dep.downloadSrc(src, test.logger)
+	s.NoError(err)
+
+	// building must fail, since "uncompilable" branch code is not buildable
+	err = test.dep.build(src.Url, test.logger)
+	s.Error(err)
+
+	// delete the source code
+	err = test.dep.deleteSrc(src.Url)
+	s.NoError(err)
+}
+
 // In order for 'go test' to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run
 func TestDep(t *testing.T) {
