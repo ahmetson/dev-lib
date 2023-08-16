@@ -45,7 +45,7 @@ func (test *TestDepSuite) SetupTest() {
 	test.url = "github.com/ahmetson/test-manager"
 }
 
-// TestNew tests the creation of the DepManager managers
+// Test_0_New tests the creation of the DepManager managers
 func (test *TestDepSuite) Test_0_New() {
 	s := &test.Suite
 
@@ -72,7 +72,7 @@ func (test *TestDepSuite) Test_0_New() {
 	test.dep = depManager
 }
 
-// TestUrlToFileName tests the utility function that converts the URL into the file name.
+// Test_1_UrlToFileName tests the utility function that converts the URL into the file name.
 func (test *TestDepSuite) Test_1_UrlToFileName() {
 	url := "github.com/ahmetson/test-ext"
 	fileName := "github.com.ahmetson.test-ext"
@@ -90,14 +90,14 @@ func (test *TestDepSuite) Test_1_UrlToFileName() {
 	test.Require().Equal(urlToFileName(url), fileName)
 }
 
-// TestSourcePath tests the utility functions related to the paths
+// Test_2_SourcePath tests the utility functions related to the paths
 func (test *TestDepSuite) Test_2_SourcePath() {
 	url := "github.com/ahmetson/test-manager"
 	expected := filepath.Join(test.dep.Src, "github.com.ahmetson.test-manager")
 	test.Suite.Equal(expected, test.dep.srcPath(url))
 }
 
-// TestDownload makes sure to downloadSrc the remote repository into the context.
+// Test_3_Download makes sure to downloadSrc the remote repository into the context.
 // This is the first part of Install.
 // The second part of Install is building.
 //
@@ -131,6 +131,7 @@ func (test *TestDepSuite) Test_3_Download() {
 	s.Error(err)
 }
 
+// Test_4_Build will compile the source code downloaded in Test_3_Download
 func (test *TestDepSuite) Test_4_Build() {
 	s := &test.Suite
 
