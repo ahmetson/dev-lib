@@ -148,6 +148,44 @@ func (test *TestDepSuite) Test_4_Build() {
 	s.True(exist)
 }
 
+// Test_5_DeleteSrc deletes the dependency's source code.
+// The dependency was downloaded in Test_3_Download
+func (test *TestDepSuite) Test_5_DeleteSrc() {
+	s := &test.Suite
+
+	// There should be a source code
+	exist, _ := test.dep.srcExist(test.url)
+	s.True(exist)
+
+	// Delete the source code
+	err := test.dep.deleteSrc(test.url)
+	s.NoError(err)
+
+	// There should not be a source code
+	exist, err = test.dep.srcExist(test.url)
+	s.NoError(err)
+	s.False(exist)
+}
+
+// Test_6_DeleteBin deletes the dependency's binary.
+// The binary was created by Test_4_Build
+func (test *TestDepSuite) Test_6_DeleteBin() {
+	s := &test.Suite
+
+	// The binary should be presented
+	// There should not be any binary before building
+	exist := test.dep.Installed(test.url)
+	s.True(exist)
+
+	// Delete the binary
+	err := test.dep.deleteBin(test.url)
+	s.NoError(err)
+
+	// The binary should be removed from the file
+	exist = test.dep.Installed(test.url)
+	s.False(exist)
+}
+
 // In order for 'go test' to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run
 func TestDep(t *testing.T) {
