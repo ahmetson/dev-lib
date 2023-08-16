@@ -62,7 +62,6 @@ func (dep *DepManager) Install(src *dep.Src, logger *log.Logger) error {
 	logger.Info("Checking the source code", "srcExist", srcExist)
 
 	if srcExist {
-		logger.Info("src exists, we need to build it")
 		err := dep.build(src.Url, logger)
 		if err != nil {
 			return fmt.Errorf("build: %w", err)
@@ -253,13 +252,10 @@ func (dep *DepManager) Uninstall(src *dep.Src, logger *log.Logger) error {
 	}
 
 	if exist {
-		logger.Info("src exists, we need to build it")
 		err := dep.deleteSrc(src.Url)
 		if err != nil {
 			return fmt.Errorf("dep.deleteSrc: %w", err)
 		}
-
-		return nil
 	}
 
 	exist = dep.Installed(src.Url)
