@@ -91,7 +91,7 @@ func (test *TestDepSuite) Test_1_UrlToFileName() {
 }
 
 // Test_2_SourcePath tests the utility functions related to the paths
-func (test *TestDepSuite) Test_2_SourcePath() {
+func (test *TestDepSuite) Test_12_SourcePath() {
 	url := "github.com/ahmetson/test-manager"
 	expected := filepath.Join(test.dep.Src, "github.com.ahmetson.test-manager")
 	test.Suite.Equal(expected, test.dep.srcPath(url))
@@ -102,7 +102,7 @@ func (test *TestDepSuite) Test_2_SourcePath() {
 // The second part of Install is building.
 //
 // Tests DepManager.downloadSrc and srcExist.
-func (test *TestDepSuite) Test_3_Download() {
+func (test *TestDepSuite) Test_13_Download() {
 	s := &test.Suite
 
 	// There should not be any source code before downloading
@@ -132,7 +132,7 @@ func (test *TestDepSuite) Test_3_Download() {
 }
 
 // Test_4_Build will compile the source code downloaded in Test_3_Download
-func (test *TestDepSuite) Test_4_Build() {
+func (test *TestDepSuite) Test_14_Build() {
 	s := &test.Suite
 
 	// There should not be any binary before building
@@ -150,7 +150,7 @@ func (test *TestDepSuite) Test_4_Build() {
 
 // Test_5_DeleteSrc deletes the dependency's source code.
 // The dependency was downloaded in Test_3_Download
-func (test *TestDepSuite) Test_5_DeleteSrc() {
+func (test *TestDepSuite) Test_15_DeleteSrc() {
 	s := &test.Suite
 
 	// There should be a source code
@@ -169,7 +169,7 @@ func (test *TestDepSuite) Test_5_DeleteSrc() {
 
 // Test_6_DeleteBin deletes the dependency's binary.
 // The binary was created by Test_4_Build
-func (test *TestDepSuite) Test_6_DeleteBin() {
+func (test *TestDepSuite) Test_16_DeleteBin() {
 	s := &test.Suite
 
 	// The binary should be presented
@@ -187,7 +187,7 @@ func (test *TestDepSuite) Test_6_DeleteBin() {
 }
 
 // Test_7_Install is the combination of Test_3_Download and Test_4_Build.
-func (test *TestDepSuite) Test_7_Install() {
+func (test *TestDepSuite) Test_17_Install() {
 	s := &test.Suite
 
 	src, err := dep.New(test.url)
@@ -209,7 +209,7 @@ func (test *TestDepSuite) Test_7_Install() {
 }
 
 // Test_8_Uninstall is the combination of Test_5_DeleteSrc and Test_6_DeleteBin.
-func (test *TestDepSuite) Test_8_Uninstall() {
+func (test *TestDepSuite) Test_18_Uninstall() {
 	s := &test.Suite
 
 	src, err := dep.New(test.url)
@@ -229,7 +229,7 @@ func (test *TestDepSuite) Test_8_Uninstall() {
 }
 
 // Test_8_Uninstall is the combination of Test_5_DeleteSrc and Test_6_DeleteBin.
-func (test *TestDepSuite) Test_9_InvalidCompile() {
+func (test *TestDepSuite) Test_19_InvalidCompile() {
 	s := &test.Suite
 
 	src, err := dep.New(test.url)
