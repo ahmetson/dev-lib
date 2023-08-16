@@ -42,6 +42,7 @@ import (
 	ctxConfig "github.com/ahmetson/dev-lib/config"
 	"github.com/ahmetson/dev-lib/dep_manager"
 	"github.com/ahmetson/handler-lib"
+	"github.com/ahmetson/log-lib"
 	"path/filepath"
 	"strings"
 )
@@ -56,12 +57,41 @@ type Context struct {
 }
 
 // New creates Developer context.
-// Call SetConfig() to prepare it.
-func New() *Context {
-	return &Context{
+// Loads it with the Dev Configuration and Dev Dep Manager.
+func New() (*Context, error) {
+	ctx := &Context{
 		deps:       make(map[string]string),
 		controller: nil,
 	}
+
+	logger, err := log.New(ctxConfig.DevContext, true)
+	if err != nil {
+		return nil, fmt.Errorf("log.New")
+	}
+
+	engine, err := config.New(logger)
+	if err != nil {
+		return nil, fmt.Errorf("config.NewDev: %w", err)
+	}
+
+	ctx.SetConfig(engine)
+	if err := ctxConfig.SetDevDefaults(engine); err != nil {
+		return nil, fmt.Errorf("config.SetDevDefaults: %w", err)
+	}
+
+	binPath := engine.GetString(ctxConfig.BinKey)
+	srcPath := engine.GetString(ctxConfig.SrcKey)
+
+	depManager, err := dep_manager.NewDev(srcPath, binPath)
+	if err != nil {
+		return nil, fmt.Errorf("dep_manager.new: %w", err)
+	}
+
+	if err := ctx.SetDepManager(depManager); err != nil {
+		return nil, fmt.Errorf("ctx.SetDepManager: %w", err)
+	}
+
+	return ctx, nil
 }
 
 // SetConfig sets the config engine of the given type.
@@ -121,7 +151,7 @@ func (ctx *Context) Type() ctxConfig.ContextType {
 //
 //	fmt.Println("service", kv)
 //
-//	yamlConfig = key_value.New(kv)
+//	yamlConfig = key_value.NewDev(kv)
 //	if err := yamlConfig.Exist("Services"); err != nil {
 //		return nil, fmt.Errorf("no services in yaml: %w", err)
 //	}

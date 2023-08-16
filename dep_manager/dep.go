@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/ahmetson/client-lib"
 	clientConfig "github.com/ahmetson/client-lib/config"
-	"github.com/ahmetson/config-lib"
 	"github.com/ahmetson/log-lib"
 	"github.com/ahmetson/os-lib/path"
 	"github.com/go-git/go-git/v5"
@@ -14,11 +13,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-)
-
-const (
-	SrcKey = "SERVICE_DEPS_SRC"
-	BinKey = "SERVICE_DEPS_BIN"
 )
 
 // A Dep manager
@@ -32,41 +26,38 @@ type Dep struct {
 	parent *clientConfig.Client
 }
 
-// New dependency in the orchestra. If the dependency already exists, it will return an error.
+// NewDev dependency in the orchestra. If the dependency already exists, it will return an error.
 // The created dependency will be added to the orchestra.
-func New(configEngine config.Interface) (*Dep, error) {
-	execPath, err := path.GetExecPath()
-	if err != nil {
-		return nil, fmt.Errorf("path.GetExecPath: %w", err)
-	}
-	src := path.GetPath(execPath, configEngine.GetString(SrcKey))
-	bin := path.GetPath(execPath, configEngine.GetString(BinKey))
-
-	if err := path.MakePath(bin); err != nil {
-		return nil, fmt.Errorf("path.MakePath(%s): %w", bin, err)
-	}
-
-	if err := path.MakePath(src); err != nil {
-		return nil, fmt.Errorf("path.MakePath(%s): %w", src, err)
+//
+// The default paths:
+//
+//		/bin.exe
+//		/dep/source/
+//		/dep/bin/
+//	 /dep/source/github.com.ahmetson.proxy-lib/main.go
+//	 /dep/bin/github.com.ahmetson.proxy-lib.exe
+func NewDev(srcPath string, binPath string) (*Dep, error) {
+	if err := path.MakeDir(binPath); err != nil {
+		return nil, fmt.Errorf("path.MakeDir(%s): %w", binPath, err)
 	}
 
-	return &Dep{Src: src, Bin: bin}, nil
+	if err := path.MakeDir(srcPath); err != nil {
+		return nil, fmt.Errorf("path.MakeDir(%s): %w", srcPath, err)
+	}
+
+	return &Dep{Src: srcPath, Bin: binPath}, nil
 }
 
 func (dep *Dep) prepareSrcPath(url string) error {
 	dir := filepath.Dir(dep.srcPath(url))
-	return path.MakePath(dir)
-}
-
-func (dep *Dep) prepareBinPath() error {
-	return path.MakePath(dep.Bin)
+	return path.MakeDir(dir)
 }
 
 // Installed checks the binary exist.
 // Orchestra passes BinPath(url)
 func (dep *Dep) Installed(url string) bool {
 	binPath := path.BinPath(dep.Bin, urlToFileName(url))
-	exists, _ := path.FileExists(binPath)
+	exists, _ := path.FileExist(binPath)
 	return exists
 }
 
@@ -119,7 +110,7 @@ func (dep *Dep) srcPath(url string) string {
 
 func (dep *Dep) srcExist(url string) (bool, error) {
 	dataPath := dep.srcPath(url)
-	exists, err := path.DirExists(dataPath)
+	exists, err := path.DirExist(dataPath)
 	if err != nil {
 		return false, fmt.Errorf("path.DirExists('%s'): %w", dataPath, err)
 	}
@@ -147,18 +138,12 @@ func (dep *Dep) Running(c *clientConfig.Client) (bool, error) {
 
 // builds the application
 func (dep *Dep) build(url string, logger *log.Logger) error {
-	// first need to prepare the directory by creating it
-	err := dep.prepareBinPath()
-	if err != nil {
-		return fmt.Errorf("prepareBinPath: %w", err)
-	}
-
 	srcUrl := dep.srcPath(url)
 	binUrl := path.BinPath(dep.Bin, urlToFileName(url))
 
 	logger.Info("building", "src", srcUrl, "bin", binUrl)
 
-	err = cleanBuild(srcUrl, logger)
+	err := cleanBuild(srcUrl, logger)
 	if err != nil {
 		return fmt.Errorf("cleanBuild(%s): %w", srcUrl, err)
 	}

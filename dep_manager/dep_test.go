@@ -27,6 +27,7 @@ func (suite *TestDepSuite) SetupTest() {
 	suite.dep = &Dep{
 		Src: "./src",
 	}
+
 }
 
 func (suite *TestDepSuite) TestPath() {
@@ -34,7 +35,7 @@ func (suite *TestDepSuite) TestPath() {
 	expected := filepath.Join("./src/github.com.ahmetson.test")
 	suite.Suite.Equal(expected, suite.dep.srcPath(url))
 
-	execPath, err := path.GetExecPath()
+	execPath, err := path.CurrentDir()
 	suite.Suite.NoError(err)
 	suite.dep.Src = execPath
 	url = "config"
