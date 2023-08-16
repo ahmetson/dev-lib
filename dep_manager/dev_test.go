@@ -16,7 +16,7 @@ type TestDepSuite struct {
 	suite.Suite
 
 	logger     *log.Logger
-	dep        *Dep
+	dep        *DepManager
 	currentDir string
 	url        string
 }
@@ -35,7 +35,7 @@ func (test *TestDepSuite) SetupTest() {
 	binPath := path.AbsDir(currentDir, "_sds/bin")
 
 	// Make sure that the folders don't exist. They will be added later
-	test.dep = &Dep{
+	test.dep = &DepManager{
 		Src: srcPath,
 		Bin: binPath,
 	}
@@ -44,7 +44,7 @@ func (test *TestDepSuite) SetupTest() {
 	test.url = "github.com/ahmetson/test-manager"
 }
 
-// TestNew tests the creation of the Dep managers
+// TestNew tests the creation of the DepManager managers
 func (test *TestDepSuite) Test_0_New() {
 	s := &test.Suite
 
@@ -57,7 +57,7 @@ func (test *TestDepSuite) Test_0_New() {
 	s.NoError(err)
 	s.False(exist)
 
-	// If we create the Dep manager with 'NewDev,' it will create the folders.
+	// If we create the DepManager manager with 'NewDev,' it will create the folders.
 	dep, err := NewDev(test.dep.Src, test.dep.Bin)
 	s.NoError(err)
 
@@ -124,7 +124,7 @@ func (test *TestDepSuite) Test_3_SourcePath() {
 // This is the first part of Install.
 // The second part of Install is building.
 //
-// Tests Dep.downloadSrc and srcExist.
+// Tests DepManager.downloadSrc and srcExist.
 func (test *TestDepSuite) Test_4_Download() {
 	s := &test.Suite
 

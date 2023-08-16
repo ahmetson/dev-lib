@@ -16,8 +16,8 @@ import (
 	"strings"
 )
 
-// A Dep Manager in the config.DevContext context
-type Dep struct {
+// A DepManager Manager in the config.DevContext context
+type DepManager struct {
 	cmd  *exec.Cmd
 	done chan error
 
@@ -31,7 +31,7 @@ type Dep struct {
 //
 // It will prepare the directories for source codes and binary.
 // If preparation fails, it will throw an error.
-func NewDev(srcPath string, binPath string) (*Dep, error) {
+func NewDev(srcPath string, binPath string) (*DepManager, error) {
 	if err := path.MakeDir(binPath); err != nil {
 		return nil, fmt.Errorf("path.MakeDir(%s): %w", binPath, err)
 	}
@@ -40,18 +40,18 @@ func NewDev(srcPath string, binPath string) (*Dep, error) {
 		return nil, fmt.Errorf("path.MakeDir(%s): %w", srcPath, err)
 	}
 
-	return &Dep{Src: srcPath, Bin: binPath}, nil
+	return &DepManager{Src: srcPath, Bin: binPath}, nil
 }
 
 // Installed checks is the binary exist.
-func (dep *Dep) Installed(url string) bool {
+func (dep *DepManager) Installed(url string) bool {
 	binPath := path.BinPath(dep.Bin, urlToFileName(url))
 	exists, _ := path.FileExist(binPath)
 	return exists
 }
 
 // Install loads the dependency source code, and builds it.
-func (dep *Dep) Install(url string, logger *log.Logger) error {
+func (dep *DepManager) Install(url string, logger *log.Logger) error {
 	logger.Info("Starting the installation of the dependency", "url", url)
 
 	// check for a source exist
@@ -87,12 +87,12 @@ func (dep *Dep) Install(url string, logger *log.Logger) error {
 	return nil
 }
 
-func (dep *Dep) srcPath(url string) string {
+func (dep *DepManager) srcPath(url string) string {
 	return filepath.Join(dep.Src, urlToFileName(url))
 }
 
 // srcExist checks is the source code exist or not
-func (dep *Dep) srcExist(url string) (bool, error) {
+func (dep *DepManager) srcExist(url string) (bool, error) {
 	dataPath := dep.srcPath(url)
 	exists, err := path.DirExist(dataPath)
 	if err != nil {
@@ -102,7 +102,7 @@ func (dep *Dep) srcExist(url string) (bool, error) {
 }
 
 // Running checks whether the given client running or not
-func (dep *Dep) Running(c *clientConfig.Client) (bool, error) {
+func (dep *DepManager) Running(c *clientConfig.Client) (bool, error) {
 	depUrl := client.ClientUrl(c.Id, c.Port)
 
 	sock, err := zmq4.NewSocket(zmq4.REP)
@@ -121,7 +121,7 @@ func (dep *Dep) Running(c *clientConfig.Client) (bool, error) {
 }
 
 // build the application from source code.
-func (dep *Dep) build(url string, logger *log.Logger) error {
+func (dep *DepManager) build(url string, logger *log.Logger) error {
 	srcUrl := dep.srcPath(url)
 	binUrl := path.BinPath(dep.Bin, urlToFileName(url))
 
@@ -144,7 +144,7 @@ func (dep *Dep) build(url string, logger *log.Logger) error {
 }
 
 // Run downloads the binary if it wasn't.
-func (dep *Dep) Run(url string, id string, parent *clientConfig.Client, logger *log.Logger) error {
+func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client, logger *log.Logger) error {
 	binUrl := path.BinPath(dep.Bin, urlToFileName(url))
 	configFlag := fmt.Sprintf("--url=%s", url)
 	idFlag := fmt.Sprintf("--id=%s", id)
@@ -171,7 +171,7 @@ func (dep *Dep) Run(url string, id string, parent *clientConfig.Client, logger *
 }
 
 // Call it before starting the dependency with os/exec.Start
-func (dep *Dep) onEnd(url string, logger *log.Logger) {
+func (dep *DepManager) onEnd(url string, logger *log.Logger) {
 	go func() {
 		err := <-dep.done
 		if err != nil {
@@ -184,7 +184,7 @@ func (dep *Dep) onEnd(url string, logger *log.Logger) {
 }
 
 // wait until the dependency is not exiting
-func (dep *Dep) wait(url string, logger *log.Logger) {
+func (dep *DepManager) wait(url string, logger *log.Logger) {
 	go func() {
 		logger.Info("waiting for dep_manager to end", "dep_manager", url)
 		err := dep.cmd.Wait()
@@ -218,7 +218,7 @@ func convertToGitUrl(rawUrl string) (string, error) {
 }
 
 // downloadSrc gets the remote source code using Git
-func (dep *Dep) downloadSrc(url string, logger *log.Logger) error {
+func (dep *DepManager) downloadSrc(url string, logger *log.Logger) error {
 	gitUrl, err := convertToGitUrl(url)
 	if err != nil {
 		return fmt.Errorf("convertToGitUrl(%s): %w", url, err)

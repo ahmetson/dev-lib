@@ -55,7 +55,7 @@ type Context struct {
 }
 
 // New creates Developer context.
-// Loads it with the Dev Configuration and Dev Dep Manager.
+// Loads it with the Dev Configuration and Dev DepManager Manager.
 func New() (*Context, error) {
 	ctx := &Context{
 		deps:       make(map[string]string),
