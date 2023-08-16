@@ -7,6 +7,7 @@ import (
 	"github.com/ahmetson/os-lib/path"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -270,7 +271,10 @@ func (test *TestDepSuite) Test_20_Run() {
 
 	// Let's run it, it should exit immediately
 	err = test.dep.Run(src.Url, id, parent, test.logger)
-	s.NoError(err)
+	s.Require().NoError(err)
+
+	// Just to see the exit message
+	time.Sleep(time.Second)
 }
 
 // In order for 'go test' to run this suite, we need to create
