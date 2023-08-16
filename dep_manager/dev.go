@@ -59,22 +59,11 @@ func (dep *DepManager) Install(src *dep.Src, logger *log.Logger) error {
 		return fmt.Errorf("dep_manager.srcExist(%s): %w", src.Url, err)
 	}
 
-	logger.Info("Checking the source code", "srcExist", srcExist)
-
-	if srcExist {
-		err := dep.build(src.Url, logger)
+	if !srcExist {
+		err = dep.downloadSrc(src, logger)
 		if err != nil {
-			return fmt.Errorf("build: %w", err)
+			return fmt.Errorf("downloadSrc: %w", err)
 		}
-
-		return nil
-	}
-
-	logger.Info("downloadSrc the source code from remote repository")
-
-	err = dep.downloadSrc(src, logger)
-	if err != nil {
-		return fmt.Errorf("downloadSrc: %w", err)
 	}
 
 	err = dep.build(src.Url, logger)
