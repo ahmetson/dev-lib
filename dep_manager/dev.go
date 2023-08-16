@@ -205,12 +205,14 @@ func (dep *DepManager) downloadSrc(src *dep.Src, logger *log.Logger) error {
 		options.ReferenceName = plumbing.NewBranchReferenceName(src.Branch)
 	}
 
-	repo, err := git.PlainClone(srcUrl, false, options)
+	_, err := git.PlainClone(srcUrl, false, options)
 
 	if err != nil {
 		return fmt.Errorf("git.PlainClone --url %s --o %s: %w", src.Url, srcUrl, err)
 	}
 
+	return nil
+}
 
 // deleteSrc deletes the source code
 func (dep *DepManager) deleteSrc(url string) error {
