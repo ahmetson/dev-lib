@@ -276,7 +276,7 @@ func (test *TestDepSuite) Test_20_Run() {
 	s.Require().NoError(err)
 
 	// Just to see the exit message
-	time.Sleep(time.Second)
+	time.Sleep(time.Millisecond * 100)
 	s.Require().NoError(test.dep.exitErr)
 
 	// Clean out the installed files
