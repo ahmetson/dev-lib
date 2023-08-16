@@ -1,6 +1,7 @@
 package dep_manager
 
 import (
+	clientConfig "github.com/ahmetson/client-lib/config"
 	"github.com/ahmetson/dev-lib/dep"
 	"github.com/ahmetson/log-lib"
 	"github.com/ahmetson/os-lib/path"
@@ -246,6 +247,29 @@ func (test *TestDepSuite) Test_19_InvalidCompile() {
 
 	// delete the source code
 	err = test.dep.deleteSrc(src.Url)
+	s.NoError(err)
+}
+
+// Test_10_Run runs the given binary.
+func (test *TestDepSuite) Test_20_Run() {
+	s := &test.Suite
+
+	id := "test-manager"
+	parent := &clientConfig.Client{
+		Url:  "dev-lib",
+		Id:   "parent",
+		Port: 120,
+	}
+
+	src, err := dep.New(test.url)
+	s.Require().NoError(err)
+
+	// First, install the manager
+	err = test.dep.Install(src, test.logger)
+	s.NoError(err)
+
+	// Let's run it, it should exit immediately
+	err = test.dep.Run(src.Url, id, parent, test.logger)
 	s.NoError(err)
 }
 
