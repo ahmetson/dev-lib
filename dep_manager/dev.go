@@ -100,6 +100,11 @@ func (dep *DepManager) Running(c *clientConfig.Client) (bool, error) {
 		return false, fmt.Errorf("zmq.NewSocket: %w", err)
 	}
 	bindErr := sock.Bind(depUrl)
+
+	if bindErr != nil {
+		return true, nil
+	}
+
 	err = sock.Close()
 	if err != nil {
 		return false, fmt.Errorf("socket.Close: %w", err)
@@ -107,7 +112,7 @@ func (dep *DepManager) Running(c *clientConfig.Client) (bool, error) {
 
 	// if bind error, then its running
 	// if nil bind error, then it's not running
-	return bindErr != nil, nil
+	return false, nil
 }
 
 // build the application from source code.
