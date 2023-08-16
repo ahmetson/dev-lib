@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"github.com/ahmetson/client-lib"
 	clientConfig "github.com/ahmetson/client-lib/config"
+	"github.com/ahmetson/dev-lib/dep"
 	"github.com/ahmetson/log-lib"
 	"github.com/ahmetson/os-lib/path"
-	"github.com/asaskevich/govalidator"
 	"github.com/go-git/go-git/v5"
 	"github.com/pebbe/zmq4"
-	"net/url"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -51,20 +50,18 @@ func (dep *DepManager) Installed(url string) bool {
 }
 
 // Install loads the dependency source code, and builds it.
-func (dep *DepManager) Install(url string, logger *log.Logger) error {
-	logger.Info("Starting the installation of the dependency", "url", url)
-
+func (dep *DepManager) Install(srcUrl *dep.Src, logger *log.Logger) error {
 	// check for a source exist
-	srcExist, err := dep.srcExist(url)
+	srcExist, err := dep.srcExist(srcUrl.Url)
 	if err != nil {
-		return fmt.Errorf("dep_manager.srcExist(%s): %w", url, err)
+		return fmt.Errorf("dep_manager.srcExist(%s): %w", srcUrl.Url, err)
 	}
 
 	logger.Info("Checking the source code", "srcExist", srcExist)
 
 	if srcExist {
 		logger.Info("src exists, we need to build it")
-		err := dep.build(url, logger)
+		err := dep.build(srcUrl.Url, logger)
 		if err != nil {
 			return fmt.Errorf("build: %w", err)
 		}
@@ -74,12 +71,12 @@ func (dep *DepManager) Install(url string, logger *log.Logger) error {
 
 	logger.Info("downloadSrc the source code from remote repository")
 
-	err = dep.downloadSrc(url, logger)
+	err = dep.downloadSrc(srcUrl, logger)
 	if err != nil {
 		return fmt.Errorf("downloadSrc: %w", err)
 	}
 
-	err = dep.build(url, logger)
+	err = dep.build(srcUrl.Url, logger)
 	if err != nil {
 		return fmt.Errorf("build: %w", err)
 	}
@@ -193,44 +190,16 @@ func (dep *DepManager) wait(url string, logger *log.Logger) {
 	}()
 }
 
-// convertToGitUrl converts the url without any protocol schema part into https link to the git.
-// It supports only the remote urls.
-// The file paths are not supported.
-func convertToGitUrl(rawUrl string) (string, error) {
-	_, err := url.ParseRequestURI(rawUrl)
-	if err == nil {
-		return "", fmt.Errorf("url should be not an absolute path")
-	}
-
-	absPath := "https://" + rawUrl + ".git"
-	fmt.Printf("%s\n", absPath)
-	URL, err := url.ParseRequestURI(absPath)
-	if err != nil {
-		return "", fmt.Errorf("invalid '%s' url: %w", rawUrl, err)
-	}
-
-	hostName := URL.Hostname()
-	if !govalidator.IsDNSName(hostName) {
-		return "", fmt.Errorf("not a valid DNS Name: %s", hostName)
-	}
-
-	return absPath, nil
-}
-
 // downloadSrc gets the remote source code using Git
-func (dep *DepManager) downloadSrc(url string, logger *log.Logger) error {
-	gitUrl, err := convertToGitUrl(url)
-	if err != nil {
-		return fmt.Errorf("convertToGitUrl(%s): %w", url, err)
-	}
-	srcUrl := dep.srcPath(url)
-	_, err = git.PlainClone(srcUrl, false, &git.CloneOptions{
-		URL:      gitUrl,
+func (dep *DepManager) downloadSrc(src *dep.Src, logger *log.Logger) error {
+	srcUrl := dep.srcPath(src.Url)
+	_, err := git.PlainClone(srcUrl, false, &git.CloneOptions{
+		URL:      src.GitUrl,
 		Progress: logger,
 	})
 
 	if err != nil {
-		return fmt.Errorf("git.PlainClone --url %s --o %s: %w", gitUrl, srcUrl, err)
+		return fmt.Errorf("git.PlainClone --url %s --o %s: %w", src.Url, srcUrl, err)
 	}
 
 	return nil
