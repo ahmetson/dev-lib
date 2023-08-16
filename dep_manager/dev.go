@@ -138,8 +138,6 @@ func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client, l
 
 	args := []string{configFlag, idFlag, parentFlag}
 
-	logger.Info("running", "command", binUrl, "arguments", args)
-
 	dep.exitErr = nil
 	dep.done = make(chan error, 1)
 	dep.onStop()
