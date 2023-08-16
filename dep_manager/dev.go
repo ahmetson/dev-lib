@@ -196,14 +196,19 @@ func (dep *Dep) wait(url string, logger *log.Logger) {
 // It supports only the remote urls.
 // The file paths are not supported.
 func convertToGitUrl(rawUrl string) (string, error) {
+	_, err := url.ParseRequestURI(rawUrl)
+	if err == nil {
+		return "", fmt.Errorf("url should be not an absolute path")
+	}
+
 	absPath := "https://" + rawUrl + ".git"
+	fmt.Printf("%s\n", absPath)
 	URL, err := url.ParseRequestURI(absPath)
 	if err != nil {
 		return "", fmt.Errorf("invalid '%s' url: %w", rawUrl, err)
 	}
 
 	hostName := URL.Hostname()
-
 	if !govalidator.IsDNSName(hostName) {
 		return "", fmt.Errorf("not a valid DNS Name: %s", hostName)
 	}
