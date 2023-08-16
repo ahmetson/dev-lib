@@ -45,7 +45,7 @@ func (test *TestDepSuite) SetupTest() {
 }
 
 // TestNew tests the creation of the Dep managers
-func (test *TestDepSuite) TestNew() {
+func (test *TestDepSuite) Test_0_New() {
 	s := &test.Suite
 
 	// Before testing, we make sure that the files don't exist
@@ -73,7 +73,7 @@ func (test *TestDepSuite) TestNew() {
 
 // TestConvertToGitUrl tests converting url to git url.
 // Since dev dep manager uses git for loading the files.
-func (test *TestDepSuite) TestConvertToGitUrl() {
+func (test *TestDepSuite) Test_1_ConvertToGitUrl() {
 	s := &test.Suite
 
 	// valid
@@ -96,7 +96,7 @@ func (test *TestDepSuite) TestConvertToGitUrl() {
 }
 
 // TestUrlToFileName tests the utility function that converts the URL into the file name.
-func (test *TestDepSuite) TestUrlToFileName() {
+func (test *TestDepSuite) Test_2_UrlToFileName() {
 	url := "github.com/ahmetson/test-ext"
 	fileName := "github.com.ahmetson.test-ext"
 	test.Require().Equal(urlToFileName(url), fileName)
@@ -114,7 +114,7 @@ func (test *TestDepSuite) TestUrlToFileName() {
 }
 
 // TestSourcePath tests the utility functions related to the paths
-func (test *TestDepSuite) TestSourcePath() {
+func (test *TestDepSuite) Test_3_SourcePath() {
 	url := "github.com/ahmetson/test-manager"
 	expected := filepath.Join(test.dep.Src, "github.com.ahmetson.test-manager")
 	test.Suite.Equal(expected, test.dep.srcPath(url))
@@ -125,7 +125,7 @@ func (test *TestDepSuite) TestSourcePath() {
 // The second part of Install is building.
 //
 // Tests Dep.downloadSrc and srcExist.
-func (test *TestDepSuite) TestDownload() {
+func (test *TestDepSuite) Test_4_Download() {
 	s := &test.Suite
 
 	// There should not be any source code before downloading
