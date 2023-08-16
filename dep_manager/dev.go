@@ -129,7 +129,7 @@ func (dep *DepManager) build(url string, logger *log.Logger) error {
 	return nil
 }
 
-// Run downloads the binary if it wasn't.
+// Run runs the binary. If the binary isn't running, then it will return an error.
 func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client, logger *log.Logger) error {
 	binUrl := path.BinPath(dep.Bin, urlToFileName(url))
 	configFlag := fmt.Sprintf("--url=%s", url)

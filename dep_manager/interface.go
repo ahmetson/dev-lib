@@ -8,7 +8,8 @@ import (
 
 // The Interface of the dependency manager.
 //
-// This one is initiated by the orchestra.
+// It doesn't have the `Stop` command.
+// Because, stopping must be done by the remote call from other services.
 type Interface interface {
 	// Installed checks is the service installed
 	Installed(url string) bool
