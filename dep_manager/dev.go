@@ -52,18 +52,18 @@ func (dep *DepManager) Installed(url string) bool {
 }
 
 // Install loads the dependency source code, and builds it.
-func (dep *DepManager) Install(srcUrl *dep.Src, logger *log.Logger) error {
+func (dep *DepManager) Install(src *dep.Src, logger *log.Logger) error {
 	// check for a source exist
-	srcExist, err := dep.srcExist(srcUrl.Url)
+	srcExist, err := dep.srcExist(src.Url)
 	if err != nil {
-		return fmt.Errorf("dep_manager.srcExist(%s): %w", srcUrl.Url, err)
+		return fmt.Errorf("dep_manager.srcExist(%s): %w", src.Url, err)
 	}
 
 	logger.Info("Checking the source code", "srcExist", srcExist)
 
 	if srcExist {
 		logger.Info("src exists, we need to build it")
-		err := dep.build(srcUrl.Url, logger)
+		err := dep.build(src.Url, logger)
 		if err != nil {
 			return fmt.Errorf("build: %w", err)
 		}
@@ -73,12 +73,12 @@ func (dep *DepManager) Install(srcUrl *dep.Src, logger *log.Logger) error {
 
 	logger.Info("downloadSrc the source code from remote repository")
 
-	err = dep.downloadSrc(srcUrl, logger)
+	err = dep.downloadSrc(src, logger)
 	if err != nil {
 		return fmt.Errorf("downloadSrc: %w", err)
 	}
 
-	err = dep.build(srcUrl.Url, logger)
+	err = dep.build(src.Url, logger)
 	if err != nil {
 		return fmt.Errorf("build: %w", err)
 	}
