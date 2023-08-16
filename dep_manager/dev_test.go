@@ -284,6 +284,36 @@ func (test *TestDepSuite) Test_20_Run() {
 	s.NoError(err)
 }
 
+// Test_21_RunError runs the binary that exits with error.
+// Dependency manager must show it
+func (test *TestDepSuite) Test_21_RunError() {
+	s := &test.Suite
+
+	src, err := dep.New(test.url)
+	s.Require().NoError(err)
+	src.SetBranch("error-exit") // this branch intentionally exits the program with an error.
+
+	// First, install the manager
+	err = test.dep.Install(src, test.logger)
+	s.NoError(err)
+
+	// Let's run it, it should exit immediately
+	err = test.dep.Run(src.Url, test.id, test.parent, test.logger)
+	s.Require().NoError(err)
+
+	// Just to see the exit message.
+	// The 0.1 seconds.
+	// That's how long the program waits before exit.
+	// Other 0.2 seconds are for some end of the background work.
+	time.Sleep(time.Millisecond * 300)
+	test.logger.Info("exit status", "err", test.dep.exitErr)
+	s.Require().Error(test.dep.exitErr)
+
+	// Clean out the installed files
+	err = test.dep.Uninstall(src)
+	s.NoError(err)
+}
+
 // In order for 'go test' to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run
 func TestDep(t *testing.T) {
