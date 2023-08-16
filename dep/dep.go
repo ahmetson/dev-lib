@@ -1,3 +1,5 @@
+// Package dep defines the dependency parameters.
+// It's used by dependency_manager to articulate with the dependencies.
 package dep
 
 import (
@@ -6,6 +8,9 @@ import (
 	"net/url"
 )
 
+// The Src struct is used to fetch the source code.
+// It has the optional Branch option.
+// When the Branch is set, then the dependency manager will check out that from remote.
 type Src struct {
 	Url    string
 	GitUrl string
@@ -22,6 +27,7 @@ func New(url string) (*Src, error) {
 	return &Src{Url: url, GitUrl: gitUrl}, nil
 }
 
+// SetBranch sets the branch name of the repository.
 func (src *Src) SetBranch(branch string) {
 	src.Branch = branch
 }
