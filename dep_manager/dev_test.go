@@ -92,14 +92,14 @@ func (test *TestDepSuite) Test_1_UrlToFileName() {
 	test.Require().Equal(urlToFileName(url), fileName)
 }
 
-// Test_2_SourcePath tests the utility functions related to the paths
+// Test_12_SourcePath tests the utility functions related to the paths
 func (test *TestDepSuite) Test_12_SourcePath() {
 	url := "github.com/ahmetson/test-manager"
 	expected := filepath.Join(test.dep.Src, "github.com.ahmetson.test-manager")
 	test.Suite.Equal(expected, test.dep.srcPath(url))
 }
 
-// Test_3_Download makes sure to downloadSrc the remote repository into the context.
+// Test_13_Download makes sure to downloadSrc the remote repository into the context.
 // This is the first part of Install.
 // The second part of Install is building.
 //
@@ -133,7 +133,7 @@ func (test *TestDepSuite) Test_13_Download() {
 	s.Error(err)
 }
 
-// Test_4_Build will compile the source code downloaded in Test_3_Download
+// Test_14_Build will compile the source code downloaded in Test_3_Download
 func (test *TestDepSuite) Test_14_Build() {
 	s := &test.Suite
 
@@ -150,7 +150,7 @@ func (test *TestDepSuite) Test_14_Build() {
 	s.True(exist)
 }
 
-// Test_5_DeleteSrc deletes the dependency's source code.
+// Test_15_DeleteSrc deletes the dependency's source code.
 // The dependency was downloaded in Test_3_Download
 func (test *TestDepSuite) Test_15_DeleteSrc() {
 	s := &test.Suite
@@ -169,7 +169,7 @@ func (test *TestDepSuite) Test_15_DeleteSrc() {
 	s.False(exist)
 }
 
-// Test_6_DeleteBin deletes the dependency's binary.
+// Test_16_DeleteBin deletes the dependency's binary.
 // The binary was created by Test_4_Build
 func (test *TestDepSuite) Test_16_DeleteBin() {
 	s := &test.Suite
@@ -188,7 +188,7 @@ func (test *TestDepSuite) Test_16_DeleteBin() {
 	s.False(exist)
 }
 
-// Test_7_Install is the combination of Test_3_Download and Test_4_Build.
+// Test_17_Install is the combination of Test_3_Download and Test_4_Build.
 func (test *TestDepSuite) Test_17_Install() {
 	s := &test.Suite
 
@@ -210,7 +210,7 @@ func (test *TestDepSuite) Test_17_Install() {
 	s.True(exist)
 }
 
-// Test_8_Uninstall is the combination of Test_5_DeleteSrc and Test_6_DeleteBin.
+// Test_18_Uninstall is the combination of Test_5_DeleteSrc and Test_6_DeleteBin.
 func (test *TestDepSuite) Test_18_Uninstall() {
 	s := &test.Suite
 
@@ -230,7 +230,7 @@ func (test *TestDepSuite) Test_18_Uninstall() {
 	s.False(exist)
 }
 
-// Test_8_Uninstall is the combination of Test_5_DeleteSrc and Test_6_DeleteBin.
+// Test_19_Uninstall is the combination of Test_5_DeleteSrc and Test_6_DeleteBin.
 func (test *TestDepSuite) Test_19_InvalidCompile() {
 	s := &test.Suite
 
@@ -251,7 +251,7 @@ func (test *TestDepSuite) Test_19_InvalidCompile() {
 	s.NoError(err)
 }
 
-// Test_10_Run runs the given binary.
+// Test_20_Run runs the given binary.
 func (test *TestDepSuite) Test_20_Run() {
 	s := &test.Suite
 
