@@ -19,8 +19,11 @@ const (
 //
 // It sets the dep manager's bin path and source path in (dot is current dir by executable):
 //
-//	./_sds/src
-//	./_sds/bin
+//		/bin.exe
+//		/_sds/source/
+//		/_sds/bin/
+//	 /_sds/source/github.com.ahmetson.proxy-lib/main.go
+//	 /_sds/bin/github.com.ahmetson.proxy-lib.exe
 func SetDevDefaults(engine configLib.Interface) error {
 	currentDir, err := path.CurrentDir()
 	if err != nil {

@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-// A Dep manager
+// A Dep Manager in the config.DevContext context
 type Dep struct {
 	cmd  *exec.Cmd
 	done chan error
@@ -28,14 +28,6 @@ type Dep struct {
 
 // NewDev dependency in the orchestra. If the dependency already exists, it will return an error.
 // The created dependency will be added to the orchestra.
-//
-// The default paths:
-//
-//		/bin.exe
-//		/dep/source/
-//		/dep/bin/
-//	 /dep/source/github.com.ahmetson.proxy-lib/main.go
-//	 /dep/bin/github.com.ahmetson.proxy-lib.exe
 func NewDev(srcPath string, binPath string) (*Dep, error) {
 	if err := path.MakeDir(binPath); err != nil {
 		return nil, fmt.Errorf("path.MakeDir(%s): %w", binPath, err)
