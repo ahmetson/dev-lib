@@ -2,6 +2,7 @@ package dep_manager
 
 import (
 	clientConfig "github.com/ahmetson/client-lib/config"
+	"github.com/ahmetson/dev-lib/dep"
 	"github.com/ahmetson/log-lib"
 )
 
@@ -14,7 +15,7 @@ type Interface interface {
 	// Running checks is the service running or not
 	Running(*clientConfig.Client) (bool, error)
 	// Install the dependency from the source code. It compiles it.
-	Install(url string, log *log.Logger) error
+	Install(src *dep.Src, log *log.Logger) error
 	// Run the dependency. The url of the dependency. It's id. and the parameters of the parent to connect to.
 	Run(url string, id string, parent *clientConfig.Client, logger *log.Logger) error
 }
