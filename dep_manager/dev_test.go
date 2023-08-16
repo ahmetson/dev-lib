@@ -297,7 +297,7 @@ func (test *TestDepSuite) Test_21_RunError() {
 	err = test.dep.Install(src, test.logger)
 	s.NoError(err)
 
-	// Let's run it, it should exit immediately
+	// Let's run it
 	err = test.dep.Run(src.Url, test.id, test.parent, test.logger)
 	s.Require().NoError(err)
 
