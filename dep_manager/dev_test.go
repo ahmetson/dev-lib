@@ -1,6 +1,7 @@
 package dep_manager
 
 import (
+	"github.com/ahmetson/dev-lib/dep"
 	"github.com/ahmetson/log-lib"
 	"github.com/ahmetson/os-lib/path"
 	"path/filepath"
@@ -58,45 +59,21 @@ func (test *TestDepSuite) Test_0_New() {
 	s.False(exist)
 
 	// If we create the DepManager manager with 'NewDev,' it will create the folders.
-	dep, err := NewDev(test.dep.Src, test.dep.Bin)
+	depManager, err := NewDev(test.dep.Src, test.dep.Bin)
 	s.NoError(err)
 
 	// Now we can check for the directories
-	exist, _ = path.DirExist(dep.Src)
+	exist, _ = path.DirExist(depManager.Src)
 	s.True(exist)
 
-	exist, _ = path.DirExist(dep.Bin)
+	exist, _ = path.DirExist(depManager.Bin)
 	s.True(exist)
 
-	test.dep = dep
-}
-
-// TestConvertToGitUrl tests converting url to git url.
-// Since dev dep manager uses git for loading the files.
-func (test *TestDepSuite) Test_1_ConvertToGitUrl() {
-	s := &test.Suite
-
-	// valid
-	url := "github.com/ahmetson/test"
-	expected := "https://github.com/ahmetson/test.git"
-	gitUrl, err := convertToGitUrl(url)
-	s.NoError(err)
-	s.Equal(expected, gitUrl)
-
-	// invalid url
-	url = "../local_dir"
-	_, err = convertToGitUrl(url)
-	s.Error(err)
-
-	// having a schema prefix will fail
-	url = "file://file"
-	_, err = convertToGitUrl(url)
-	s.Error(err)
-
+	test.dep = depManager
 }
 
 // TestUrlToFileName tests the utility function that converts the URL into the file name.
-func (test *TestDepSuite) Test_2_UrlToFileName() {
+func (test *TestDepSuite) Test_1_UrlToFileName() {
 	url := "github.com/ahmetson/test-ext"
 	fileName := "github.com.ahmetson.test-ext"
 	test.Require().Equal(urlToFileName(url), fileName)
@@ -114,7 +91,7 @@ func (test *TestDepSuite) Test_2_UrlToFileName() {
 }
 
 // TestSourcePath tests the utility functions related to the paths
-func (test *TestDepSuite) Test_3_SourcePath() {
+func (test *TestDepSuite) Test_2_SourcePath() {
 	url := "github.com/ahmetson/test-manager"
 	expected := filepath.Join(test.dep.Src, "github.com.ahmetson.test-manager")
 	test.Suite.Equal(expected, test.dep.srcPath(url))
@@ -125,7 +102,7 @@ func (test *TestDepSuite) Test_3_SourcePath() {
 // The second part of Install is building.
 //
 // Tests DepManager.downloadSrc and srcExist.
-func (test *TestDepSuite) Test_4_Download() {
+func (test *TestDepSuite) Test_3_Download() {
 	s := &test.Suite
 
 	// There should not be any source code before downloading
@@ -133,8 +110,11 @@ func (test *TestDepSuite) Test_4_Download() {
 	s.NoError(err)
 	s.False(exist)
 
+	src, err := dep.New(test.url)
+	s.NoError(err)
+
 	// download the source code
-	err = test.dep.downloadSrc(test.url, test.logger)
+	err = test.dep.downloadSrc(src, test.logger)
 	s.NoError(err)
 
 	// There should be a source code
@@ -145,11 +125,13 @@ func (test *TestDepSuite) Test_4_Download() {
 	// Testing the failures
 	//
 	url := "github.com/ahmetson/no-repo" // this repo doesn't exist
-	err = test.dep.downloadSrc(url, test.logger)
+	src, err = dep.New(url)
+	s.NoError(err)
+	err = test.dep.downloadSrc(src, test.logger)
 	s.Error(err)
 }
 
-func (test *TestDepSuite) Test_5_Build() {
+func (test *TestDepSuite) Test_4_Build() {
 	s := &test.Suite
 
 	// There should not be any binary before building
