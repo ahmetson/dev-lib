@@ -6,6 +6,7 @@ import (
 	clientConfig "github.com/ahmetson/client-lib/config"
 	"github.com/ahmetson/log-lib"
 	"github.com/ahmetson/os-lib/path"
+	"github.com/asaskevich/govalidator"
 	"github.com/go-git/go-git/v5"
 	"github.com/pebbe/zmq4"
 	"net/url"
@@ -191,16 +192,23 @@ func (dep *Dep) wait(url string, logger *log.Logger) {
 	}()
 }
 
+// convertToGitUrl converts the url without any protocol schema part into https link to the git.
+// It supports only the remote urls.
+// The file paths are not supported.
 func convertToGitUrl(rawUrl string) (string, error) {
-	URL, err := url.Parse(rawUrl)
+	absPath := "https://" + rawUrl + ".git"
+	URL, err := url.ParseRequestURI(absPath)
 	if err != nil {
-		return "", fmt.Errorf("invalid url: %w", err)
+		return "", fmt.Errorf("invalid '%s' url: %w", rawUrl, err)
 	}
 
-	URL.Scheme = "https"
+	hostName := URL.Hostname()
 
-	println("url", URL, "protocol", URL.Scheme)
-	return URL.String() + ".git", nil
+	if !govalidator.IsDNSName(hostName) {
+		return "", fmt.Errorf("not a valid DNS Name: %s", hostName)
+	}
+
+	return absPath, nil
 }
 
 func (dep *Dep) cloneSrc(url string, logger *log.Logger) error {

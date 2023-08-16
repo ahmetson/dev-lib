@@ -68,8 +68,32 @@ func (test *TestDepSuite) TestNew() {
 	test.dep = dep
 }
 
-// TestPath tests the utility functions related to the paths
-func (test *TestDepSuite) TestPath() {
+// TestConvertToGitUrl tests converting url to git url.
+// Since dev dep manager uses git for loading the files.
+func (test *TestDepSuite) TestConvertToGitUrl() {
+	s := &test.Suite
+
+	// valid
+	url := "github.com/ahmetson/test"
+	expected := "https://github.com/ahmetson/test.git"
+	gitUrl, err := convertToGitUrl(url)
+	s.NoError(err)
+	s.Equal(expected, gitUrl)
+
+	// invalid url
+	url = "../local_dir"
+	_, err = convertToGitUrl(url)
+	s.Error(err)
+
+	// having a schema prefix will fail
+	url = "file://file"
+	_, err = convertToGitUrl(url)
+	s.Error(err)
+
+}
+
+// TestPaths tests the utility functions related to the paths
+func (test *TestDepSuite) TestPaths() {
 	url := "github.com/ahmetson/test"
 	expected := filepath.Join(test.dep.Src, "github.com.ahmetson.test")
 	test.Suite.Equal(expected, test.dep.srcPath(url))
