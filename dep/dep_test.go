@@ -30,23 +30,9 @@ func (test *TestDepSuite) SetupTest() {
 	}
 }
 
-// TestNew tests the creation of the DepManager managers
-func (test *TestDepSuite) Test_0_New() {
-	s := &test.Suite
-
-	// If we create the DepManager manager with 'NewDev,' it will create the folders.
-	expected := "https://github.com/ahmetson/test-manager.git"
-	src, err := New(test.src.Url)
-	s.NoError(err)
-
-	s.Equal(expected, src.GitUrl)
-
-	test.src = src
-}
-
 // TestConvertToGitUrl tests converting url to git url.
 // Since dev dep manager uses git for loading the files.
-func (test *TestDepSuite) Test_1_ConvertToGitUrl() {
+func (test *TestDepSuite) Test_0_ConvertToGitUrl() {
 	s := &test.Suite
 
 	// valid
@@ -66,6 +52,20 @@ func (test *TestDepSuite) Test_1_ConvertToGitUrl() {
 	_, err = convertToGitUrl(url)
 	s.Error(err)
 
+}
+
+// TestNew tests the creation of the DepManager managers
+func (test *TestDepSuite) Test_1_New() {
+	s := &test.Suite
+
+	// If we create the DepManager manager with 'NewDev,' it will create the folders.
+	expected := "https://github.com/ahmetson/test-manager.git"
+	src, err := New(test.src.Url)
+	s.NoError(err)
+
+	s.Equal(expected, src.GitUrl)
+
+	test.src = src
 }
 
 func (test *TestDepSuite) Test_2_SetBranch() {
