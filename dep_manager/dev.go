@@ -89,7 +89,9 @@ func (dep *DepManager) srcExist(url string) (bool, error) {
 	return exists, nil
 }
 
-// Running checks whether the given client running or not
+// Running checks whether the given client running or not.
+// If the service is running on another process or on another node,
+// then that service should expose the port.
 func (dep *DepManager) Running(c *clientConfig.Client) (bool, error) {
 	depUrl := client.ClientUrl(c.Id, c.Port)
 
