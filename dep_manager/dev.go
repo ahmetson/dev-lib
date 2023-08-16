@@ -10,6 +10,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/pebbe/zmq4"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -211,8 +212,62 @@ func (dep *DepManager) downloadSrc(src *dep.Src, logger *log.Logger) error {
 	}
 
 
+// deleteSrc deletes the source code
+func (dep *DepManager) deleteSrc(src *dep.Src) error {
+	srcUrl := dep.srcPath(src.Url)
+
+	err := os.RemoveAll(srcUrl)
+	if err != nil {
+		return fmt.Errorf("os.RemoveAll('%s'): %s", srcUrl, err)
+	}
+
 	return nil
 }
+
+// deleteBin deletes the binary from the directory.
+// If there is no binary, it will throw an error.
+// If attempt to delete failed, it will throw an error.
+func (dep *DepManager) deleteBin(url string) error {
+	if !dep.Installed(url) {
+		return fmt.Errorf("'%s' not installed", url)
+	}
+
+	binPath := path.BinPath(dep.Bin, urlToFileName(url))
+	if err := os.Remove(binPath); err != nil {
+		return fmt.Errorf("os.Remove('%s'): %w", binPath, err)
+	}
+
+	return nil
+}
+
+// Uninstall deletes the dependency source code, and its binary.
+// Trying to uninstall already running application will fail.
+//
+// Uninstall will omit if no binary or source code exists.
+func (dep *DepManager) Uninstall(src *dep.Src, logger *log.Logger) error {
+	exist, err := dep.srcExist(src.Url)
+	if err != nil {
+		return fmt.Errorf("dep_manager.exist(%s): %w", src.Url, err)
+	}
+
+	if exist {
+		logger.Info("src exists, we need to build it")
+		err := dep.deleteSrc(src)
+		if err != nil {
+			return fmt.Errorf("dep.deleteSrc: %w", err)
+		}
+
+		return nil
+	}
+
+	exist = dep.Installed(src.Url)
+	if exist {
+		err := dep.deleteBin(src.Url)
+		if err != nil {
+			return fmt.Errorf("dep.deleteBin('%s'): %w", src.Url, err)
+		}
+	}
+
 	return nil
 }
 
