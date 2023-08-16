@@ -149,6 +149,22 @@ func (test *TestDepSuite) Test_4_Download() {
 	s.Error(err)
 }
 
+func (test *TestDepSuite) Test_5_Build() {
+	s := &test.Suite
+
+	// There should not be any binary before building
+	exist := test.dep.Installed(test.url)
+	s.False(exist)
+
+	// build the binaries
+	err := test.dep.build(test.url, test.logger)
+	s.NoError(err)
+
+	// There should be a binary after testing
+	exist = test.dep.Installed(test.url)
+	s.True(exist)
+}
+
 // In order for 'go test' to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run
 func TestDep(t *testing.T) {
