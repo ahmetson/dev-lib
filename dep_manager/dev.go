@@ -213,8 +213,8 @@ func (dep *DepManager) downloadSrc(src *dep.Src, logger *log.Logger) error {
 
 
 // deleteSrc deletes the source code
-func (dep *DepManager) deleteSrc(src *dep.Src) error {
-	srcUrl := dep.srcPath(src.Url)
+func (dep *DepManager) deleteSrc(url string) error {
+	srcUrl := dep.srcPath(url)
 
 	err := os.RemoveAll(srcUrl)
 	if err != nil {
@@ -252,7 +252,7 @@ func (dep *DepManager) Uninstall(src *dep.Src, logger *log.Logger) error {
 
 	if exist {
 		logger.Info("src exists, we need to build it")
-		err := dep.deleteSrc(src)
+		err := dep.deleteSrc(src.Url)
 		if err != nil {
 			return fmt.Errorf("dep.deleteSrc: %w", err)
 		}
