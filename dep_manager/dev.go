@@ -1,3 +1,4 @@
+// Package dep_manager tracks the dependency manager in the local context.
 package dep_manager
 
 import (
