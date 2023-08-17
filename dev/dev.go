@@ -4,17 +4,15 @@ package dev
 import (
 	"fmt"
 	"github.com/ahmetson/config-lib"
-	ctxConfig "github.com/ahmetson/dev-lib/config"
+	devConfig "github.com/ahmetson/dev-lib/config"
 	"github.com/ahmetson/dev-lib/dep_manager"
-	"github.com/ahmetson/handler-lib"
-	"github.com/ahmetson/log-lib"
 )
 
 // A Context handles the config of the contexts
 type Context struct {
-	engine       config.Interface
-	depManager   dep_manager.Interface
-	controller   *handler.Controller
+	engine     config.Interface
+	depManager dep_manager.Interface
+	//controller   *handler.Controller
 	serviceReady bool
 	deps         map[string]string // id => url
 }
@@ -23,27 +21,22 @@ type Context struct {
 // Loads it with the Dev Configuration and Dev DepManager Manager.
 func New() (*Context, error) {
 	ctx := &Context{
-		deps:       make(map[string]string),
-		controller: nil,
+		deps: make(map[string]string),
+		//controller: nil,
 	}
 
-	logger, err := log.New(ctxConfig.DevContext, true)
-	if err != nil {
-		return nil, fmt.Errorf("log.New")
-	}
-
-	engine, err := config.New(logger)
+	engine, err := config.NewDev()
 	if err != nil {
 		return nil, fmt.Errorf("config.NewDev: %w", err)
 	}
 
 	ctx.SetConfig(engine)
-	if err := ctxConfig.SetDevDefaults(engine); err != nil {
+	if err := devConfig.SetDevDefaults(engine); err != nil {
 		return nil, fmt.Errorf("config.SetDevDefaults: %w", err)
 	}
 
-	binPath := engine.GetString(ctxConfig.BinKey)
-	srcPath := engine.GetString(ctxConfig.SrcKey)
+	binPath := engine.GetString(devConfig.BinKey)
+	srcPath := engine.GetString(devConfig.SrcKey)
 
 	depManager, err := dep_manager.NewDev(srcPath, binPath)
 	if err != nil {
@@ -87,6 +80,6 @@ func (ctx *Context) DepManager() dep_manager.Interface {
 }
 
 // Type returns the context type. Useful to identify contexts in the generic functions.
-func (ctx *Context) Type() ctxConfig.ContextType {
-	return ctxConfig.DevContext
+func (ctx *Context) Type() devConfig.ContextType {
+	return devConfig.DevContext
 }
