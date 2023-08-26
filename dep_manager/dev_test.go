@@ -50,9 +50,9 @@ func (test *TestDepManagerSuite) SetupTest() {
 
 	test.id = "test-manager"
 	test.parent = &clientConfig.Client{
-		Url:  "dev-lib",
-		Id:   "parent",
-		Port: 120,
+		ServiceUrl: "dev-lib",
+		Id:         "parent",
+		Port:       120,
 	}
 }
 
@@ -319,9 +319,9 @@ func (test *TestDepManagerSuite) Test_22_Running() {
 	s := &test.Suite
 
 	client := &clientConfig.Client{
-		Url:  "test-manager",
-		Id:   test.id,
-		Port: 6000,
+		ServiceUrl: "test-manager",
+		Id:         test.id,
+		Port:       6000,
 	}
 
 	src, err := dep.New(test.url)

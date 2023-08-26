@@ -3,7 +3,6 @@ package dep_manager
 
 import (
 	"fmt"
-	"github.com/ahmetson/client-lib"
 	clientConfig "github.com/ahmetson/client-lib/config"
 	"github.com/ahmetson/dev-lib/dep"
 	"github.com/ahmetson/log-lib"
@@ -94,7 +93,7 @@ func (dep *DepManager) srcExist(url string) (bool, error) {
 // If the service is running on another process or on another node,
 // then that service should expose the port.
 func (dep *DepManager) Running(c *clientConfig.Client) (bool, error) {
-	depUrl := client.ClientUrl(c.Id, c.Port)
+	depUrl := clientConfig.Url(c)
 
 	sock, err := zmq4.NewSocket(zmq4.REP)
 	if err != nil {
@@ -142,7 +141,7 @@ func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client, l
 	binUrl := path.BinPath(dep.Bin, urlToFileName(url))
 	configFlag := fmt.Sprintf("--url=%s", url)
 	idFlag := fmt.Sprintf("--id=%s", id)
-	parentFlag := fmt.Sprintf("--parent=%s", client.ClientUrl(parent.Id, parent.Port))
+	parentFlag := fmt.Sprintf("--parent=%s", clientConfig.Url(parent))
 
 	args := []string{configFlag, idFlag, parentFlag}
 
