@@ -15,16 +15,12 @@ type Context struct {
 	depManager   dep_manager.Interface
 	controller   base.Interface
 	serviceReady bool
-	deps         map[string]string // id => url
 }
 
 // New creates Developer context.
 // Loads it with the Dev Configuration and Dev DepManager Manager.
 func New() (*Context, error) {
-	ctx := &Context{
-		deps: make(map[string]string),
-		//controller: nil,
-	}
+	ctx := &Context{}
 
 	engine, err := config.NewDev()
 	if err != nil {
