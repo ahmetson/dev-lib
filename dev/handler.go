@@ -14,8 +14,15 @@ import (
 	"github.com/ahmetson/client-lib"
 	"github.com/ahmetson/common-lib/data_type/key_value"
 	"github.com/ahmetson/common-lib/message"
+	"github.com/ahmetson/handler-lib/config"
 	"github.com/ahmetson/handler-lib/sync_replier"
 	"github.com/ahmetson/log-lib"
+	"github.com/pebbe/zmq4"
+)
+
+const (
+	CtxManager    = "context_handler"
+	CtxManagerUrl = "inproc://context_handler" // only one context per
 )
 
 // onClose closing all the dependencies in the orchestra.
@@ -68,8 +75,7 @@ func (ctx *Context) onServiceReady(request message.Request) message.Reply {
 func (ctx *Context) Run(logger *log.Logger) error {
 	replier := sync_replier.New()
 
-	//config := config.InternalConfiguration(config.ContextName(ctx))
-	//replier.AddConfig(config, ctx.GetUrl())
+	replier.SetConfig(config.NewInternalHandler(zmq4.REP, CtxManager))
 
 	err := replier.Route("close", ctx.onClose)
 	if err != nil {
@@ -96,30 +102,27 @@ func (ctx *Context) Close(logger *log.Logger) error {
 		logger.Warn("skipping, since orchestra.ControllerCategory is not initialised", "todo", "call orchestra.Run()")
 		return nil
 	}
-	//contextName, contextPort := config.ClientUrlParameters(config.ContextName(ctx.GetUrl()))
-	//contextClient, err := client.NewReq(contextName, contextPort, logger)
-	//if err != nil {
-	//	logger.Error("client.NewReq", "error", err)
-	//	return fmt.Errorf("close the service by hand. client.NewReq: %w", err)
-	//}
+	contextClient, err := client.NewRaw(zmq4.REP, CtxManagerUrl)
+	if err != nil {
+		logger.Error("client.NewReq", "error", err)
+		return fmt.Errorf("close the service by hand. client.NewReq: %w", err)
+	}
 
-	//closeRequest := &message.Request{
-	//	Command:    "close",
-	//	Parameters: key_value.Empty(),
-	//}
+	closeRequest := &message.Request{
+		Command:    "close",
+		Parameters: key_value.Empty(),
+	}
 
-	//_, err = contextClient.RequestRemoteService(closeRequest)
-	//if err != nil {
-	//	logger.Error("contextClient.RequestRemoteService", "error", err)
-	//	return fmt.Errorf("close the service by hand. contextClient.RequestRemoteService: %w", err)
-	//}
+	if err := contextClient.Submit(closeRequest); err != nil {
+		logger.Error("contextClient.RequestRemoteService", "error", err)
+		return fmt.Errorf("contextClient.Submit('close'): %w", err)
+	}
 
 	// release the orchestra parameters
-	//err = contextClient.Close()
-	//if err != nil {
-	//	logger.Error("contextClient.Close", "error", err)
-	//	return fmt.Errorf("contextClient.Close: %w", err)
-	//}
+	if err := contextClient.Close(); err != nil {
+		logger.Error("contextClient.Close", "error", err)
+		return fmt.Errorf("contextClient.Close: %w", err)
+	}
 
 	return nil
 }
@@ -130,27 +133,24 @@ func (ctx *Context) ServiceReady(logger *log.Logger) error {
 		logger.Warn("orchestra.ControllerCategory is not initialised", "todo", "call orchestra.Run()")
 		return nil
 	}
-	//contextName, contextPort := config.ClientUrlParameters(config.ContextName(ctx.GetUrl()))
-	//contextClient, err := client.NewReq(contextName, contextPort, logger)
-	//if err != nil {
-	//	return fmt.Errorf("close the service by hand. client.NewReq: %w", err)
-	//}
+	contextClient, err := client.NewRaw(zmq4.REP, CtxManagerUrl)
+	if err != nil {
+		return fmt.Errorf("close the service by hand. client.NewReq: %w", err)
+	}
 
-	//closeRequest := &message.Request{
-	//	Command:    "service-ready",
-	//	Parameters: key_value.Empty(),
-	//}
+	closeRequest := &message.Request{
+		Command:    "service-ready",
+		Parameters: key_value.Empty(),
+	}
 
-	//_, err = contextClient.RequestRemoteService(closeRequest)
-	//if err != nil {
-	//	return fmt.Errorf("close the service by hand. contextClient.RequestRemoteService: %w", err)
-	//}
+	if err := contextClient.Submit(closeRequest); err != nil {
+		return fmt.Errorf("contextClient.Submit('service-ready'): %w", err)
+	}
 
 	// release the orchestra parameters
-	//err = contextClient.Close()
-	//if err != nil {
-	//	return fmt.Errorf("contextClient.Close: %w", err)
-	//}
+	if err := contextClient.Close(); err != nil {
+		return fmt.Errorf("contextClient.Close: %w", err)
+	}
 
 	return nil
 }
@@ -163,27 +163,24 @@ func (ctx *Context) closeService(logger *log.Logger) error {
 	}
 	logger.Info("main service is linted to the orchestra. send a signal to main service to be closed")
 
-	//contextName, contextPort := config.ClientUrlParameters(config.ManagerName(ctx.GetUrl()))
-	//contextClient, err := client.NewReq(contextName, contextPort, logger)
-	//if err != nil {
-	//	return fmt.Errorf("close the service by hand. client.NewReq: %w", err)
-	//}
+	contextClient, err := client.NewRaw(zmq4.REP, CtxManagerUrl)
+	if err != nil {
+		return fmt.Errorf("close the service by hand. client.NewReq: %w", err)
+	}
 
-	//closeRequest := &message.Request{
-	//	Command:    "close",
-	//	Parameters: key_value.Empty(),
-	//}
+	closeRequest := &message.Request{
+		Command:    "close",
+		Parameters: key_value.Empty(),
+	}
 
-	//_, err = contextClient.RequestRemoteService(closeRequest)
-	//if err != nil {
-	//	return fmt.Errorf("close the service by hand. contextClient.RequestRemoteService: %w", err)
-	//}
+	if err = contextClient.Submit(closeRequest); err != nil {
+		return fmt.Errorf("contextClient.Submit('close'): %w", err)
+	}
 
 	// release the orchestra parameters
-	//err = contextClient.Close()
-	//if err != nil {
-	//	return fmt.Errorf("contextClient.Close: %w", err)
-	//}
+	if err := contextClient.Close(); err != nil {
+		return fmt.Errorf("contextClient.Close: %w", err)
+	}
 
 	return nil
 }
