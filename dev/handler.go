@@ -6,19 +6,20 @@ package dev
 // Close
 // this command has no arguments. And when it's given, it will close all the dependencies it has
 //
+// ServerReady
+// marks the service as ready.
 
 import (
 	"fmt"
 	"github.com/ahmetson/client-lib"
 	"github.com/ahmetson/common-lib/data_type/key_value"
 	"github.com/ahmetson/common-lib/message"
-	"github.com/ahmetson/handler-lib"
-	"github.com/ahmetson/handler-lib/command"
+	"github.com/ahmetson/handler-lib/sync_replier"
 	"github.com/ahmetson/log-lib"
 )
 
 // onClose closing all the dependencies in the orchestra.
-func (ctx *Context) onClose(request message.Request, logger *log.Logger, _ ...*client.ClientSocket) message.Reply {
+func (ctx *Context) onClose(request message.Request, logger *log.Logger, _ ...*client.Socket) message.Reply {
 	logger.Info("closing the orchestra",
 		"orchestra type", ctx.Type(),
 		"todo", "close all dependencies if any",
@@ -51,15 +52,12 @@ func (ctx *Context) onClose(request message.Request, logger *log.Logger, _ ...*c
 	return request.Ok(key_value.Empty())
 }
 
-// onSetMainService marks the main service to be ready.
-func (ctx *Context) onServiceReady(request message.Request, logger *log.Logger, _ ...*client.ClientSocket) message.Reply {
-	logger.Info("onServiceReady", "type", "handler", "state", "enter")
-
+// onServiceReady marks the main service to be ready.
+func (ctx *Context) onServiceReady(request message.Request) message.Reply {
 	if ctx.serviceReady {
 		return request.Fail("main service was set as true in the orchestra")
 	}
 	ctx.serviceReady = true
-	logger.Info("onServiceReady", "type", "handler", "state", "end")
 	return request.Ok(key_value.Empty())
 }
 
@@ -68,28 +66,23 @@ func (ctx *Context) onServiceReady(request message.Request, logger *log.Logger, 
 //
 // The logger is the handler logger as it is. The orchestra will create its own logger from it.
 func (ctx *Context) Run(logger *log.Logger) error {
-	replier, err := handler.SyncReplier(logger.Child("orchestra"))
-	if err != nil {
-		return fmt.Errorf("handler.SyncReplierType: %w", err)
-	}
+	replier := sync_replier.New()
 
-	//config := config.InternalConfiguration(config.ContextName(ctx.GetUrl()))
+	//config := config.InternalConfiguration(config.ContextName(ctx))
 	//replier.AddConfig(config, ctx.GetUrl())
 
-	closeRoute := command.NewRoute("close", ctx.onClose)
-	serviceReadyRoute := command.NewRoute("service-ready", ctx.onServiceReady)
-	err = replier.AddRoute(closeRoute)
+	err := replier.Route("close", ctx.onClose)
 	if err != nil {
 		return fmt.Errorf(`replier.AddRoute("close"): %w`, err)
 	}
-	err = replier.AddRoute(serviceReadyRoute)
+	err = replier.Route("service_ready", ctx.onServiceReady)
 	if err != nil {
 		return fmt.Errorf(`replier.AddRoute("service-ready"): %w`, err)
 	}
 
 	ctx.controller = replier
 	go func() {
-		if err := ctx.controller.Run(); err != nil {
+		if err := ctx.controller.Start(); err != nil {
 			logger.Fatal("orchestra.handler.Run: %w", err)
 		}
 	}()

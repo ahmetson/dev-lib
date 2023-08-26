@@ -6,13 +6,14 @@ import (
 	"github.com/ahmetson/config-lib"
 	devConfig "github.com/ahmetson/dev-lib/config"
 	"github.com/ahmetson/dev-lib/dep_manager"
+	"github.com/ahmetson/handler-lib/base"
 )
 
 // A Context handles the config of the contexts
 type Context struct {
-	engine     config.Interface
-	depManager dep_manager.Interface
-	//controller   *handler.Controller
+	engine       config.Interface
+	depManager   dep_manager.Interface
+	controller   base.Interface
 	serviceReady bool
 	deps         map[string]string // id => url
 }
