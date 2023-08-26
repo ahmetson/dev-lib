@@ -154,33 +154,3 @@ func (ctx *Context) ServiceReady(logger *log.Logger) error {
 
 	return nil
 }
-
-// CloseService sends a close signal to the manager.
-func (ctx *Context) closeService(logger *log.Logger) error {
-	if !ctx.serviceReady {
-		logger.Warn("!orchestra.serviceReady")
-		return nil
-	}
-	logger.Info("main service is linted to the orchestra. send a signal to main service to be closed")
-
-	contextClient, err := client.NewRaw(zmq4.REP, CtxManagerUrl)
-	if err != nil {
-		return fmt.Errorf("close the service by hand. client.NewReq: %w", err)
-	}
-
-	closeRequest := &message.Request{
-		Command:    "close",
-		Parameters: key_value.Empty(),
-	}
-
-	if err = contextClient.Submit(closeRequest); err != nil {
-		return fmt.Errorf("contextClient.Submit('close'): %w", err)
-	}
-
-	// release the orchestra parameters
-	if err := contextClient.Close(); err != nil {
-		return fmt.Errorf("contextClient.Close: %w", err)
-	}
-
-	return nil
-}
