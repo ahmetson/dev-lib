@@ -21,4 +21,6 @@ type Interface interface {
 	Run(url string, id string, parent *clientConfig.Client, logger *log.Logger) error
 	// Uninstall the dependency.
 	Uninstall(src *dep.Src) error
+	// Close the given dependency service
+	Close(c *clientConfig.Client) error
 }

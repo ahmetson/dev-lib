@@ -3,7 +3,10 @@ package dep_manager
 
 import (
 	"fmt"
+	"github.com/ahmetson/client-lib"
 	clientConfig "github.com/ahmetson/client-lib/config"
+	"github.com/ahmetson/common-lib/data_type/key_value"
+	"github.com/ahmetson/common-lib/message"
 	"github.com/ahmetson/dev-lib/dep"
 	"github.com/ahmetson/log-lib"
 	"github.com/ahmetson/os-lib/path"
@@ -19,8 +22,8 @@ import (
 
 // A DepManager Manager in the config.DevContext context
 type DepManager struct {
-	cmd     *exec.Cmd
-	done    chan error
+	cmd     map[string]*exec.Cmd
+	done    map[string]chan error
 	exitErr error
 
 	Src string `json:"SERVICE_DEPS_SRC"`
@@ -42,7 +45,40 @@ func NewDev(srcPath string, binPath string) (*DepManager, error) {
 		return nil, fmt.Errorf("path.MakeDir(%s): %w", srcPath, err)
 	}
 
-	return &DepManager{Src: srcPath, Bin: binPath}, nil
+	return &DepManager{
+		Src:  srcPath,
+		Bin:  binPath,
+		cmd:  make(map[string]*exec.Cmd, 0),
+		done: make(map[string]chan error, 0),
+	}, nil
+}
+
+// Close the dependency
+func (dep *DepManager) Close(c *clientConfig.Client) error {
+	sock, err := client.New(c)
+	if err != nil {
+		return fmt.Errorf("zmq.NewSocket: %w", err)
+	}
+
+	closeRequest := &message.Request{
+		Command:    "close",
+		Parameters: key_value.Empty(),
+	}
+	reply, err := sock.Request(closeRequest)
+	if err != nil {
+		return fmt.Errorf("socket.Request('close'): %w", err)
+	}
+
+	if reply.IsOK() {
+		return fmt.Errorf("dependency replied: %s", reply.Message)
+	}
+
+	err = sock.Close()
+	if err != nil {
+		return fmt.Errorf("socket.Close: %w", err)
+	}
+
+	return nil
 }
 
 // Installed checks is the binary exist.
@@ -146,8 +182,8 @@ func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client, l
 	args := []string{configFlag, idFlag, parentFlag}
 
 	dep.exitErr = nil
-	dep.done = make(chan error, 1)
-	dep.onStop()
+	dep.done[id] = make(chan error, 1)
+	dep.onStop(id, dep.done[id])
 
 	cmd := exec.Command(binUrl, args...)
 	cmd.Stdout = logger
@@ -156,25 +192,26 @@ func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client, l
 	if err != nil {
 		return fmt.Errorf("cmd.Start: %w", err)
 	}
-	dep.cmd = cmd
-	dep.wait()
+	dep.cmd[id] = cmd
+	dep.wait(id)
 
 	return nil
 }
 
 // onStop invoked when the dependency stops. It cleans out the dependency parameters.
-func (dep *DepManager) onStop() {
+func (dep *DepManager) onStop(id string, errChan chan error) {
 	go func() {
-		err := <-dep.done
+		err := <-errChan
 		dep.exitErr = err
-		dep.cmd = nil
+		delete(dep.cmd, id)
+
 	}()
 }
 
 // wait until the dependency stops
-func (dep *DepManager) wait() {
+func (dep *DepManager) wait(id string) {
 	go func() {
-		dep.done <- dep.cmd.Wait()
+		dep.done[id] <- dep.cmd[id].Wait()
 	}()
 }
 
