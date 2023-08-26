@@ -15,7 +15,7 @@ import (
 // Define the suite, and absorb the built-in basic suite
 // functionality from testify - including a T() method which
 // returns the current testing orchestra
-type TestDepSuite struct {
+type TestDepManagerSuite struct {
 	suite.Suite
 
 	logger     *log.Logger
@@ -28,7 +28,7 @@ type TestDepSuite struct {
 
 // Make sure that Account is set to five
 // before each test
-func (test *TestDepSuite) SetupTest() {
+func (test *TestDepManagerSuite) SetupTest() {
 	logger, _ := log.New("test dep manager", false)
 	test.logger = logger
 
@@ -57,7 +57,7 @@ func (test *TestDepSuite) SetupTest() {
 }
 
 // Test_0_New tests the creation of the DepManager managers
-func (test *TestDepSuite) Test_0_New() {
+func (test *TestDepManagerSuite) Test_0_New() {
 	s := &test.Suite
 
 	// Before testing, we make sure that the files don't exist
@@ -84,7 +84,7 @@ func (test *TestDepSuite) Test_0_New() {
 }
 
 // Test_1_UrlToFileName tests the utility function that converts the URL into the file name.
-func (test *TestDepSuite) Test_1_UrlToFileName() {
+func (test *TestDepManagerSuite) Test_1_UrlToFileName() {
 	url := "github.com/ahmetson/test-ext"
 	fileName := "github.com.ahmetson.test-ext"
 	test.Require().Equal(urlToFileName(url), fileName)
@@ -102,7 +102,7 @@ func (test *TestDepSuite) Test_1_UrlToFileName() {
 }
 
 // Test_12_SourcePath tests the utility functions related to the paths
-func (test *TestDepSuite) Test_12_SourcePath() {
+func (test *TestDepManagerSuite) Test_12_SourcePath() {
 	url := "github.com/ahmetson/test-manager"
 	expected := filepath.Join(test.dep.Src, "github.com.ahmetson.test-manager")
 	test.Suite.Equal(expected, test.dep.srcPath(url))
@@ -113,7 +113,7 @@ func (test *TestDepSuite) Test_12_SourcePath() {
 // The second part of Install is building.
 //
 // Tests DepManager.downloadSrc and srcExist.
-func (test *TestDepSuite) Test_13_Download() {
+func (test *TestDepManagerSuite) Test_13_Download() {
 	s := &test.Suite
 
 	// There should not be any source code before downloading
@@ -143,7 +143,7 @@ func (test *TestDepSuite) Test_13_Download() {
 }
 
 // Test_14_Build will compile the source code downloaded in Test_3_Download
-func (test *TestDepSuite) Test_14_Build() {
+func (test *TestDepManagerSuite) Test_14_Build() {
 	s := &test.Suite
 
 	// There should not be any binary before building
@@ -161,7 +161,7 @@ func (test *TestDepSuite) Test_14_Build() {
 
 // Test_15_DeleteSrc deletes the dependency's source code.
 // The dependency was downloaded in Test_3_Download
-func (test *TestDepSuite) Test_15_DeleteSrc() {
+func (test *TestDepManagerSuite) Test_15_DeleteSrc() {
 	s := &test.Suite
 
 	// There should be a source code
@@ -180,7 +180,7 @@ func (test *TestDepSuite) Test_15_DeleteSrc() {
 
 // Test_16_DeleteBin deletes the dependency's binary.
 // The binary was created by Test_4_Build
-func (test *TestDepSuite) Test_16_DeleteBin() {
+func (test *TestDepManagerSuite) Test_16_DeleteBin() {
 	s := &test.Suite
 
 	// The binary should be presented
@@ -198,7 +198,7 @@ func (test *TestDepSuite) Test_16_DeleteBin() {
 }
 
 // Test_17_Install is the combination of Test_3_Download and Test_4_Build.
-func (test *TestDepSuite) Test_17_Install() {
+func (test *TestDepManagerSuite) Test_17_Install() {
 	s := &test.Suite
 
 	src, err := dep.New(test.url)
@@ -220,7 +220,7 @@ func (test *TestDepSuite) Test_17_Install() {
 }
 
 // Test_18_Uninstall is the combination of Test_5_DeleteSrc and Test_6_DeleteBin.
-func (test *TestDepSuite) Test_18_Uninstall() {
+func (test *TestDepManagerSuite) Test_18_Uninstall() {
 	s := &test.Suite
 
 	src, err := dep.New(test.url)
@@ -240,7 +240,7 @@ func (test *TestDepSuite) Test_18_Uninstall() {
 }
 
 // Test_19_Uninstall is the combination of Test_5_DeleteSrc and Test_6_DeleteBin.
-func (test *TestDepSuite) Test_19_InvalidCompile() {
+func (test *TestDepManagerSuite) Test_19_InvalidCompile() {
 	s := &test.Suite
 
 	src, err := dep.New(test.url)
@@ -261,7 +261,7 @@ func (test *TestDepSuite) Test_19_InvalidCompile() {
 }
 
 // Test_20_Run runs the given binary.
-func (test *TestDepSuite) Test_20_Run() {
+func (test *TestDepManagerSuite) Test_20_Run() {
 	s := &test.Suite
 
 	src, err := dep.New(test.url)
@@ -286,7 +286,7 @@ func (test *TestDepSuite) Test_20_Run() {
 
 // Test_21_RunError runs the binary that exits with error.
 // Dependency manager must show it
-func (test *TestDepSuite) Test_21_RunError() {
+func (test *TestDepManagerSuite) Test_21_RunError() {
 	s := &test.Suite
 
 	src, err := dep.New(test.url)
@@ -315,7 +315,7 @@ func (test *TestDepSuite) Test_21_RunError() {
 }
 
 // Test_22_Running checks that service is running
-func (test *TestDepSuite) Test_22_Running() {
+func (test *TestDepManagerSuite) Test_22_Running() {
 	s := &test.Suite
 
 	client := &clientConfig.Client{
@@ -359,6 +359,6 @@ func (test *TestDepSuite) Test_22_Running() {
 
 // In order for 'go test' to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run
-func TestDep(t *testing.T) {
-	suite.Run(t, new(TestDepSuite))
+func TestDepManager(t *testing.T) {
+	suite.Run(t, new(TestDepManagerSuite))
 }
