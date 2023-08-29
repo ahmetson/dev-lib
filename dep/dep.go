@@ -1,4 +1,4 @@
-// Package dep defines the dependency parameters.
+// Package dep defines the dependency parameters in the 'dev' context.
 // It's used by dependency_manager to articulate with the dependencies.
 package dep
 
