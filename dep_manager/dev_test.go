@@ -5,6 +5,7 @@ import (
 	"github.com/ahmetson/dev-lib/dep"
 	"github.com/ahmetson/log-lib"
 	"github.com/ahmetson/os-lib/path"
+	"os/exec"
 	"path/filepath"
 	"testing"
 	"time"
@@ -41,8 +42,10 @@ func (test *TestDepManagerSuite) SetupTest() {
 
 	// Make sure that the folders don't exist. They will be added later
 	test.dep = &DepManager{
-		Src: srcPath,
-		Bin: binPath,
+		Src:  srcPath,
+		Bin:  binPath,
+		cmd:  make(map[string]*exec.Cmd, 0),
+		done: make(map[string]chan error, 0),
 	}
 
 	// A valid source code that we want to download
