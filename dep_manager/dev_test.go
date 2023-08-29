@@ -341,7 +341,7 @@ func (test *TestDepManagerSuite) Test_22_Running() {
 
 	// waiting for initialization...
 	time.Sleep(time.Millisecond * 200)
-	s.Require().NotNil(test.dep.cmd) // cmd == nil indicates that the program was closed
+	s.Require().NotNil(test.dep.cmd[test.id]) // cmd == nil indicates that the program was closed
 
 	// Check is the service running
 	running, err := test.dep.Running(client)
@@ -350,7 +350,7 @@ func (test *TestDepManagerSuite) Test_22_Running() {
 
 	// service is running two seconds. after that running should return false
 	time.Sleep(time.Second * 2)
-	s.Require().Nil(test.dep.cmd) // cmd == nil indicates that the program was closed
+	s.Require().Nil(test.dep.cmd[test.id]) // cmd == nil indicates that the program was closed
 	running, err = test.dep.Running(client)
 	s.Require().NoError(err)
 	s.False(running)
