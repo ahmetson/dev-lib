@@ -10,6 +10,10 @@ working with local yaml files.
 The dep manager in the developer context is using the local
 directory.
 
+> If you run `go test ./...` or `go test ./dep_manager`, then
+> then run them with the `-v` flag. Since the test works
+> with source code building.
+
 # Dev Context
 Which means it's in the current machine.
 
