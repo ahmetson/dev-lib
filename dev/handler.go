@@ -67,7 +67,7 @@ func (ctx *Context) onServiceReady(request message.Request) message.Reply {
 func (ctx *Context) Run(logger *log.Logger) error {
 	replier := sync_replier.New()
 
-	replier.SetConfig(config.NewInternalHandler(zmq4.REP, CtxManager))
+	replier.SetConfig(config.NewInternalHandler(config.SyncReplierType, CtxManager))
 
 	err := replier.Route("close", ctx.onClose)
 	if err != nil {
