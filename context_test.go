@@ -1,7 +1,7 @@
 package context
 
 import (
-	ctxConfig "github.com/ahmetson/dev-lib/config"
+	ctxConfig "github.com/ahmetson/dev-lib/base/config"
 	"github.com/stretchr/testify/suite"
 	"testing"
 )

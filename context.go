@@ -3,8 +3,8 @@ package context
 import (
 	"fmt"
 	"github.com/ahmetson/config-lib"
-	ctxConfig "github.com/ahmetson/dev-lib/config"
-	"github.com/ahmetson/dev-lib/dep_manager"
+	ctxConfig "github.com/ahmetson/dev-lib/base/config"
+	"github.com/ahmetson/dev-lib/base/dep_manager"
 	"github.com/ahmetson/dev-lib/dev"
 )
 
