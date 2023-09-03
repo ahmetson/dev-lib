@@ -75,7 +75,7 @@ func (dep *DepManager) Close(c *clientConfig.Client) error {
 		return fmt.Errorf("socket.Request('close'): %w", err)
 	}
 
-	if reply.IsOK() {
+	if !reply.IsOK() {
 		return fmt.Errorf("dependency replied: %s", reply.Message)
 	}
 
