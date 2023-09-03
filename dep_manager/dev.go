@@ -302,9 +302,9 @@ func (dep *DepManager) Uninstall(src *dep.Src) error {
 // calls `go mod tidy`
 func cleanBuild(srcUrl string, logger *log.Logger) error {
 	cmd := exec.Command("go", "mod", "tidy")
-	cmd.Stdout = logger
+	cmd.Stdout = logger.Child(srcUrl)
 	cmd.Dir = srcUrl
-	cmd.Stderr = logger
+	cmd.Stderr = logger.Child(srcUrl + "_err")
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("cmd.Run: %w", err)
