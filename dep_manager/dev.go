@@ -168,9 +168,9 @@ func (dep *DepManager) build(url string, logger *log.Logger) error {
 	}
 
 	cmd := exec.Command("go", "build", "-o", binUrl)
-	cmd.Stdout = logger
+	cmd.Stdout = logger.Child(url)
 	cmd.Dir = srcUrl
-	cmd.Stderr = logger
+	cmd.Stderr = logger.Child(url + "_err")
 	err = cmd.Run()
 	if err != nil {
 		return fmt.Errorf("cmd.Run: %w", err)
@@ -192,8 +192,8 @@ func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client, l
 	dep.onStop(id, dep.done[id])
 
 	cmd := exec.Command(binUrl, args...)
-	cmd.Stdout = logger
-	cmd.Stderr = logger
+	cmd.Stdout = logger.Child(id)
+	cmd.Stderr = logger.Child(id + "_err")
 	err := cmd.Start()
 	if err != nil {
 		return fmt.Errorf("cmd.Start: %w", err)
