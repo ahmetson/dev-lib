@@ -6,8 +6,8 @@ import (
 	configClient "github.com/ahmetson/config-lib/client"
 	configHandler "github.com/ahmetson/config-lib/handler"
 	config2 "github.com/ahmetson/dev-lib/base/config"
-	baseDepManager "github.com/ahmetson/dev-lib/base/dep_manager"
 	devConfig "github.com/ahmetson/dev-lib/config"
+	"github.com/ahmetson/dev-lib/dep_handler"
 	"github.com/ahmetson/dev-lib/dep_manager"
 	"github.com/ahmetson/handler-lib/base"
 )
@@ -15,7 +15,7 @@ import (
 // A Context handles the config of the contexts
 type Context struct {
 	configClient configClient.Interface
-	depManager   baseDepManager.Interface
+	depClient    configClient.Interface
 	controller   base.Interface
 	serviceReady bool
 }
@@ -35,10 +35,10 @@ func New() (*Context, error) {
 	}
 	ctx.SetConfig(socket)
 
-	depManager := dep_manager.New()
-	if err := ctx.SetDepManager(depManager); err != nil {
-		return nil, fmt.Errorf("ctx.SetDepManager: %w", err)
-	}
+	// todo once we have depClient, use it here
+	//if err := ctx.SetDepManager(depManager); err != nil {
+	//	return nil, fmt.Errorf("ctx.SetDepManager: %w", err)
+	//}
 
 	return ctx, nil
 }
@@ -57,19 +57,19 @@ func (ctx *Context) Config() configClient.Interface {
 }
 
 // SetDepManager sets the dependency manager in the context.
-func (ctx *Context) SetDepManager(depManager baseDepManager.Interface) error {
+func (ctx *Context) SetDepManager(depClient configClient.Interface) error {
 	if ctx.configClient == nil {
 		return fmt.Errorf("no configuration")
 	}
 
-	ctx.depManager = depManager
+	ctx.depClient = depClient
 
 	return nil
 }
 
 // DepManager returns the dependency manager
-func (ctx *Context) DepManager() baseDepManager.Interface {
-	return ctx.depManager
+func (ctx *Context) DepManager() configClient.Interface {
+	return ctx.depClient
 }
 
 // Type returns the context type. Useful to identify contexts in the generic functions.
@@ -102,12 +102,19 @@ func (ctx *Context) Start() error {
 		return fmt.Errorf("configClient.String(%s): %w", devConfig.SrcKey, err)
 	}
 
-	depManager := ctx.DepManager().(*dep_manager.DepManager)
+	depManager := dep_manager.New()
 	if err := depManager.SetPaths(binPath, srcPath); err != nil {
 		return fmt.Errorf("depManager.SetPaths('%s', '%s'): %w", binPath, srcPath, err)
 	}
+	depHandler, err := dep_handler.New(depManager)
+	if err != nil {
+		return fmt.Errorf("dep_handler.New: %w", err)
+	}
 
-	// todo run dep manager
+	err = depHandler.Start()
+	if err != nil {
+		return fmt.Errorf("depHandler: %w", err)
+	}
 
 	return nil
 }
