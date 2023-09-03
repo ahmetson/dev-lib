@@ -2,15 +2,15 @@ package context
 
 import (
 	"fmt"
-	"github.com/ahmetson/config-lib"
+	configClient "github.com/ahmetson/config-lib/client"
 	ctxConfig "github.com/ahmetson/dev-lib/base/config"
 	"github.com/ahmetson/dev-lib/base/dep_manager"
 	"github.com/ahmetson/dev-lib/dev"
 )
 
 type Interface interface {
-	SetConfig(config.Interface)
-	Config() config.Interface
+	SetConfig(p configClient.Interface)
+	Config() configClient.Interface
 	SetDepManager(dep_manager.Interface) error
 	DepManager() dep_manager.Interface
 	Type() ctxConfig.ContextType
