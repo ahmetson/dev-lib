@@ -4,15 +4,14 @@ import (
 	"fmt"
 	configClient "github.com/ahmetson/config-lib/client"
 	ctxConfig "github.com/ahmetson/dev-lib/base/config"
-	"github.com/ahmetson/dev-lib/base/dep_manager"
 	"github.com/ahmetson/dev-lib/dev"
 )
 
 type Interface interface {
 	SetConfig(p configClient.Interface)
 	Config() configClient.Interface
-	SetDepManager(dep_manager.Interface) error
-	DepManager() dep_manager.Interface
+	SetDepManager(configClient.Interface) error
+	DepManager() configClient.Interface
 	Type() ctxConfig.ContextType
 	Start() error
 }
