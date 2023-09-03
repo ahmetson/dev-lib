@@ -73,7 +73,8 @@ func (test *TestDepManagerSuite) Test_0_New() {
 	s.False(exist)
 
 	// If we create the DepManager manager with 'New,' it will create the folders.
-	depManager, err := New(test.dep.Src, test.dep.Bin)
+	depManager := New()
+	err = depManager.SetPaths(test.dep.Src, test.dep.Bin)
 	s.NoError(err)
 
 	// Now we can check for the directories
