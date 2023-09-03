@@ -4,6 +4,8 @@ package dev
 import (
 	"fmt"
 	"github.com/ahmetson/config-lib"
+	config2 "github.com/ahmetson/dev-lib/base/config"
+	dep_manager2 "github.com/ahmetson/dev-lib/base/dep_manager"
 	devConfig "github.com/ahmetson/dev-lib/config"
 	"github.com/ahmetson/dev-lib/dep_manager"
 	"github.com/ahmetson/handler-lib/base"
@@ -12,7 +14,7 @@ import (
 // A Context handles the config of the contexts
 type Context struct {
 	engine       config.Interface
-	depManager   dep_manager.Interface
+	depManager   dep_manager2.Interface
 	controller   base.Interface
 	serviceReady bool
 }
@@ -24,7 +26,7 @@ func New() (*Context, error) {
 
 	engine, err := config.NewDev()
 	if err != nil {
-		return nil, fmt.Errorf("config.NewDev: %w", err)
+		return nil, fmt.Errorf("config.New: %w", err)
 	}
 
 	ctx.SetConfig(engine)
@@ -35,7 +37,7 @@ func New() (*Context, error) {
 	binPath := engine.GetString(devConfig.BinKey)
 	srcPath := engine.GetString(devConfig.SrcKey)
 
-	depManager, err := dep_manager.NewDev(srcPath, binPath)
+	depManager, err := dep_manager.New(srcPath, binPath)
 	if err != nil {
 		return nil, fmt.Errorf("dep_manager.new: %w", err)
 	}
@@ -61,7 +63,7 @@ func (ctx *Context) Config() config.Interface {
 }
 
 // SetDepManager sets the dependency manager in the context.
-func (ctx *Context) SetDepManager(depManager dep_manager.Interface) error {
+func (ctx *Context) SetDepManager(depManager dep_manager2.Interface) error {
 	if ctx.engine == nil {
 		return fmt.Errorf("no configuration")
 	}
@@ -72,11 +74,11 @@ func (ctx *Context) SetDepManager(depManager dep_manager.Interface) error {
 }
 
 // DepManager returns the dependency manager
-func (ctx *Context) DepManager() dep_manager.Interface {
+func (ctx *Context) DepManager() dep_manager2.Interface {
 	return ctx.depManager
 }
 
 // Type returns the context type. Useful to identify contexts in the generic functions.
-func (ctx *Context) Type() devConfig.ContextType {
-	return devConfig.DevContext
+func (ctx *Context) Type() config2.ContextType {
+	return config2.DevContext
 }
