@@ -7,7 +7,7 @@ import (
 	"github.com/ahmetson/common-lib/data_type/key_value"
 	"github.com/ahmetson/common-lib/message"
 	"github.com/ahmetson/dev-lib/base/dep_manager"
-	"github.com/ahmetson/dev-lib/dep"
+	"github.com/ahmetson/dev-lib/source"
 	"github.com/ahmetson/handler-lib/base"
 	handlerConfig "github.com/ahmetson/handler-lib/config"
 	"github.com/ahmetson/handler-lib/replier"
@@ -101,7 +101,7 @@ func (h *DepHandler) onDepRunning(req message.Request) message.Reply {
 
 // onInstallDep installs the dependency. if it comes with the source code, then build that as well.
 //
-// Requires the 'src' of a dep.Src type, returns nothing.
+// Requires the 'src' of a source.Src type, returns nothing.
 //
 // todo create a publisher that publishes the result of the installation, so user won't wait until installation.
 func (h *DepHandler) onInstallDep(req message.Request) message.Reply {
@@ -110,7 +110,7 @@ func (h *DepHandler) onInstallDep(req message.Request) message.Reply {
 		return req.Fail(fmt.Sprintf("req.Parameters.GetKeyValue('client'): %v", err))
 	}
 
-	var src dep.Src
+	var src source.Src
 	err = kv.Interface(&src)
 	if err != nil {
 		return req.Fail(fmt.Sprintf("kv.Interface: %v", err))
@@ -163,7 +163,7 @@ func (h *DepHandler) onRunDep(req message.Request) message.Reply {
 
 // onUninstallDep uninstalls the dependency binary. if it comes with the source code, then deletes source code as well.
 //
-// Requires the 'src' of a dep.Src type, returns nothing.
+// Requires the 'src' of a source.Src type, returns nothing.
 //
 // todo creates a publisher that publishes the result of the installation, so user won't wait until installation.
 func (h *DepHandler) onUninstallDep(req message.Request) message.Reply {
@@ -172,7 +172,7 @@ func (h *DepHandler) onUninstallDep(req message.Request) message.Reply {
 		return req.Fail(fmt.Sprintf("req.Parameters.GetKeyValue('client'): %v", err))
 	}
 
-	var src dep.Src
+	var src source.Src
 	err = kv.Interface(&src)
 	if err != nil {
 		return req.Fail(fmt.Sprintf("kv.Interface: %v", err))
@@ -187,7 +187,7 @@ func (h *DepHandler) onUninstallDep(req message.Request) message.Reply {
 }
 
 // onCloseDep stops the dependency.
-// Requires 'dep' of the clientConfig.Client type.
+// Requires 'source' of the clientConfig.Client type.
 // Returns nothing.
 //
 // todo make it publish the result through publisher, so user won't wait for the result.

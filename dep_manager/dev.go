@@ -7,7 +7,7 @@ import (
 	clientConfig "github.com/ahmetson/client-lib/config"
 	"github.com/ahmetson/common-lib/data_type/key_value"
 	"github.com/ahmetson/common-lib/message"
-	"github.com/ahmetson/dev-lib/dep"
+	"github.com/ahmetson/dev-lib/source"
 	"github.com/ahmetson/log-lib"
 	"github.com/ahmetson/os-lib/path"
 	"github.com/go-git/go-git/v5"
@@ -32,7 +32,7 @@ type DepManager struct {
 	parent *clientConfig.Client
 }
 
-// New dep manager in the Dev context.
+// New source manager in the Dev context.
 //
 // It will prepare the directories for source codes and binary.
 // If preparation fails, it will throw an error.
@@ -95,7 +95,7 @@ func (dep *DepManager) Installed(url string) bool {
 }
 
 // Install loads the dependency source code, and builds it.
-func (dep *DepManager) Install(src *dep.Src, logger *log.Logger) error {
+func (dep *DepManager) Install(src *source.Src, logger *log.Logger) error {
 	// check for a source exist
 	srcExist, err := dep.srcExist(src.Url)
 	if err != nil {
@@ -222,7 +222,7 @@ func (dep *DepManager) wait(id string) {
 }
 
 // downloadSrc gets the remote source code using Git
-func (dep *DepManager) downloadSrc(src *dep.Src, logger *log.Logger) error {
+func (dep *DepManager) downloadSrc(src *source.Src, logger *log.Logger) error {
 	srcUrl := dep.srcPath(src.Url)
 
 	options := &git.CloneOptions{
@@ -275,7 +275,7 @@ func (dep *DepManager) deleteBin(url string) error {
 // Trying to uninstall already running application will fail.
 //
 // Uninstall will omit if no binary or source code exists.
-func (dep *DepManager) Uninstall(src *dep.Src) error {
+func (dep *DepManager) Uninstall(src *source.Src) error {
 	exist, err := dep.srcExist(src.Url)
 	if err != nil {
 		return fmt.Errorf("dep_manager.exist(%s): %w", src.Url, err)
@@ -284,7 +284,7 @@ func (dep *DepManager) Uninstall(src *dep.Src) error {
 	if exist {
 		err := dep.deleteSrc(src.Url)
 		if err != nil {
-			return fmt.Errorf("dep.deleteSrc: %w", err)
+			return fmt.Errorf("source.deleteSrc: %w", err)
 		}
 	}
 
@@ -292,7 +292,7 @@ func (dep *DepManager) Uninstall(src *dep.Src) error {
 	if exist {
 		err := dep.deleteBin(src.Url)
 		if err != nil {
-			return fmt.Errorf("dep.deleteBin('%s'): %w", src.Url, err)
+			return fmt.Errorf("source.deleteBin('%s'): %w", src.Url, err)
 		}
 	}
 

@@ -1,4 +1,4 @@
-package dep
+package source
 
 import (
 	"github.com/ahmetson/log-lib"
@@ -31,7 +31,7 @@ func (test *TestDepSuite) SetupTest() {
 }
 
 // TestConvertToGitUrl tests converting url to git url.
-// Since dev dep manager uses git for loading the files.
+// Since dev source manager uses git for loading the files.
 func (test *TestDepSuite) Test_0_ConvertToGitUrl() {
 	s := &test.Suite
 

@@ -17,7 +17,7 @@ const (
 
 // SetDevDefaults sets the required developer context's parameters in the configuration engine.
 //
-// It sets the dep manager's bin path and source path in (dot is current dir by executable):
+// It sets the source manager's bin path and source path in (dot is current dir by executable):
 //
 //		/bin.exe
 //		/_sds/source/

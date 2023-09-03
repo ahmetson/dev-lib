@@ -2,9 +2,9 @@ package dep_client
 
 import (
 	clientConfig "github.com/ahmetson/client-lib/config"
-	"github.com/ahmetson/dev-lib/dep"
 	"github.com/ahmetson/dev-lib/dep_handler"
 	"github.com/ahmetson/dev-lib/dep_manager"
+	"github.com/ahmetson/dev-lib/source"
 	handlerConfig "github.com/ahmetson/handler-lib/config"
 	"github.com/ahmetson/log-lib"
 	"github.com/ahmetson/os-lib/path"
@@ -97,7 +97,7 @@ func (test *TestDepClientSuite) TearDownTest() {
 func (test *TestDepClientSuite) Test_10_Install() {
 	s := test.Suite.Require
 
-	src, err := dep.New(test.url)
+	src, err := source.New(test.url)
 	s().NoError(err)
 
 	// installation must fail since nothing installed
@@ -124,7 +124,7 @@ func (test *TestDepClientSuite) Test_10_Install() {
 func (test *TestDepClientSuite) Test_11_Uninstall() {
 	s := test.Suite.Require
 
-	src, err := dep.New(test.url)
+	src, err := source.New(test.url)
 	s().NoError(err)
 
 	// The binary must be installed to uninstall
@@ -156,7 +156,7 @@ func (test *TestDepClientSuite) Test_13_Run() {
 		TargetType: handlerConfig.SocketType(handlerConfig.ReplierType),
 	}
 
-	src, err := dep.New(test.url)
+	src, err := source.New(test.url)
 	s().NoError(err)
 	src.SetBranch("server") // the sample server is written in this branch.
 
@@ -180,10 +180,10 @@ func (test *TestDepClientSuite) Test_13_Run() {
 	err = test.client.CloseDep(depClient)
 	s().NoError(err)
 
-	// Wait a bit for closing the dep process
+	// Wait a bit for closing the source process
 	time.Sleep(time.Millisecond * 100)
 
-	// Checking for a running dep after it was closed must fail
+	// Checking for a running source after it was closed must fail
 	running, err = test.client.Running(depClient)
 	s().NoError(err)
 	s().False(running)

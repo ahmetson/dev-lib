@@ -2,7 +2,7 @@ package dep_manager
 
 import (
 	clientConfig "github.com/ahmetson/client-lib/config"
-	"github.com/ahmetson/dev-lib/dep"
+	"github.com/ahmetson/dev-lib/source"
 	"github.com/ahmetson/log-lib"
 	"github.com/ahmetson/os-lib/path"
 	"os/exec"
@@ -30,7 +30,7 @@ type TestDepManagerSuite struct {
 // Make sure that Account is set to five
 // before each test
 func (test *TestDepManagerSuite) SetupTest() {
-	logger, _ := log.New("test dep manager", false)
+	logger, _ := log.New("test source manager", false)
 	test.logger = logger
 
 	currentDir, err := path.CurrentDir()
@@ -125,7 +125,7 @@ func (test *TestDepManagerSuite) Test_13_Download() {
 	s.NoError(err)
 	s.False(exist)
 
-	src, err := dep.New(test.url)
+	src, err := source.New(test.url)
 	s.NoError(err)
 
 	// download the source code
@@ -140,7 +140,7 @@ func (test *TestDepManagerSuite) Test_13_Download() {
 	// Testing the failures
 	//
 	url := "github.com/ahmetson/no-repo" // this repo doesn't exist
-	src, err = dep.New(url)
+	src, err = source.New(url)
 	s.NoError(err)
 	err = test.dep.downloadSrc(src, test.logger)
 	s.Error(err)
@@ -205,7 +205,7 @@ func (test *TestDepManagerSuite) Test_16_DeleteBin() {
 func (test *TestDepManagerSuite) Test_17_Install() {
 	s := &test.Suite
 
-	src, err := dep.New(test.url)
+	src, err := source.New(test.url)
 	s.NoError(err)
 
 	// There should not be installed binary
@@ -227,7 +227,7 @@ func (test *TestDepManagerSuite) Test_17_Install() {
 func (test *TestDepManagerSuite) Test_18_Uninstall() {
 	s := &test.Suite
 
-	src, err := dep.New(test.url)
+	src, err := source.New(test.url)
 	s.NoError(err)
 
 	// Test_7_Install should install the binary.
@@ -247,7 +247,7 @@ func (test *TestDepManagerSuite) Test_18_Uninstall() {
 func (test *TestDepManagerSuite) Test_19_InvalidCompile() {
 	s := &test.Suite
 
-	src, err := dep.New(test.url)
+	src, err := source.New(test.url)
 	s.NoError(err)
 	src.SetBranch("uncompilable")
 
@@ -268,7 +268,7 @@ func (test *TestDepManagerSuite) Test_19_InvalidCompile() {
 func (test *TestDepManagerSuite) Test_20_Run() {
 	s := &test.Suite
 
-	src, err := dep.New(test.url)
+	src, err := source.New(test.url)
 	s.Require().NoError(err)
 
 	// First, install the manager
@@ -293,7 +293,7 @@ func (test *TestDepManagerSuite) Test_20_Run() {
 func (test *TestDepManagerSuite) Test_21_RunError() {
 	s := &test.Suite
 
-	src, err := dep.New(test.url)
+	src, err := source.New(test.url)
 	s.Require().NoError(err)
 	src.SetBranch("error-exit") // this branch intentionally exits the program with an error.
 
@@ -328,7 +328,7 @@ func (test *TestDepManagerSuite) Test_22_Running() {
 		Port:       6000,
 	}
 
-	src, err := dep.New(test.url)
+	src, err := source.New(test.url)
 	s.Require().NoError(err)
 	src.SetBranch("server") // the sample server is written in this branch.
 

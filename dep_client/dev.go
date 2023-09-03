@@ -7,8 +7,8 @@ import (
 	"github.com/ahmetson/common-lib/data_type/key_value"
 	"github.com/ahmetson/common-lib/message"
 	"github.com/ahmetson/config-lib/handler"
-	"github.com/ahmetson/dev-lib/dep"
 	"github.com/ahmetson/dev-lib/dep_handler"
+	"github.com/ahmetson/dev-lib/source"
 	handlerConfig "github.com/ahmetson/handler-lib/config"
 	"time"
 )
@@ -23,9 +23,9 @@ type Interface interface {
 	Attempt(attempt uint8)
 
 	CloseDep(depClient *clientConfig.Client) error
-	Uninstall(src *dep.Src) error
+	Uninstall(src *source.Src) error
 	Run(url string, id string, parent *clientConfig.Client) error
-	Install(src *dep.Src) error
+	Install(src *source.Src) error
 	Running(depClient *clientConfig.Client) (bool, error)
 	Installed(url string) (bool, error)
 }
@@ -75,7 +75,7 @@ func (c *Client) CloseDep(depClient *clientConfig.Client) error {
 }
 
 // Uninstall the dependency.
-func (c *Client) Uninstall(src *dep.Src) error {
+func (c *Client) Uninstall(src *source.Src) error {
 	req := message.Request{
 		Command:    dep_handler.UninstallDep,
 		Parameters: key_value.Empty().Set("src", src),
@@ -111,7 +111,7 @@ func (c *Client) Run(url string, id string, parent *clientConfig.Client) error {
 }
 
 // Install the dependency from the source code. It compiles it.
-func (c *Client) Install(src *dep.Src) error {
+func (c *Client) Install(src *source.Src) error {
 	req := message.Request{
 		Command:    dep_handler.InstallDep,
 		Parameters: key_value.Empty().Set("src", src),

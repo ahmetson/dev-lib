@@ -6,8 +6,8 @@ import (
 	clientConfig "github.com/ahmetson/client-lib/config"
 	"github.com/ahmetson/common-lib/data_type/key_value"
 	"github.com/ahmetson/common-lib/message"
-	"github.com/ahmetson/dev-lib/dep"
 	"github.com/ahmetson/dev-lib/dep_manager"
+	"github.com/ahmetson/dev-lib/source"
 	handlerConfig "github.com/ahmetson/handler-lib/config"
 	"github.com/ahmetson/log-lib"
 	"github.com/ahmetson/os-lib/path"
@@ -102,7 +102,7 @@ func (test *TestDepHandlerSuite) TearDownTest() {
 func (test *TestDepHandlerSuite) Test_10_Install() {
 	s := test.Suite.Require
 
-	src, err := dep.New(test.url)
+	src, err := source.New(test.url)
 	s().NoError(err)
 
 	// installation must fail since nothing installed
@@ -144,7 +144,7 @@ func (test *TestDepHandlerSuite) Test_10_Install() {
 func (test *TestDepHandlerSuite) Test_11_Uninstall() {
 	s := test.Suite.Require
 
-	src, err := dep.New(test.url)
+	src, err := source.New(test.url)
 	s().NoError(err)
 
 	// The binary must be installed to uninstall
@@ -191,7 +191,7 @@ func (test *TestDepHandlerSuite) Test_13_Run() {
 		TargetType: handlerConfig.SocketType(handlerConfig.ReplierType),
 	}
 
-	src, err := dep.New(test.url)
+	src, err := source.New(test.url)
 	s().NoError(err)
 	src.SetBranch("server") // the sample server is written in this branch.
 
@@ -223,7 +223,7 @@ func (test *TestDepHandlerSuite) Test_13_Run() {
 	runningReq := message.Request{
 		Command: DepRunning,
 		Parameters: key_value.Empty().
-			Set("dep", depClient),
+			Set("source", depClient),
 	}
 	running, err := test.client.Request(&runningReq)
 	s().NoError(err)
@@ -236,16 +236,16 @@ func (test *TestDepHandlerSuite) Test_13_Run() {
 	closeReq := message.Request{
 		Command: CloseDep,
 		Parameters: key_value.Empty().
-			Set("dep", depClient),
+			Set("source", depClient),
 	}
 	running, err = test.client.Request(&closeReq)
 	s().NoError(err)
 	s().True(running.IsOK())
 
-	// Wait a bit for closing the dep process
+	// Wait a bit for closing the source process
 	time.Sleep(time.Millisecond * 100)
 
-	// Checking for a running dep after it was closed must fail
+	// Checking for a running source after it was closed must fail
 	running, err = test.client.Request(&runningReq)
 	s().NoError(err)
 	s().True(running.IsOK())
