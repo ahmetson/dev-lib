@@ -3,9 +3,10 @@ package dev
 
 import (
 	"fmt"
-	"github.com/ahmetson/config-lib"
+	configClient "github.com/ahmetson/config-lib/client"
+	configHandler "github.com/ahmetson/config-lib/handler"
 	config2 "github.com/ahmetson/dev-lib/base/config"
-	dep_manager2 "github.com/ahmetson/dev-lib/base/dep_manager"
+	depmanager2 "github.com/ahmetson/dev-lib/base/dep_manager"
 	devConfig "github.com/ahmetson/dev-lib/config"
 	"github.com/ahmetson/dev-lib/dep_manager"
 	"github.com/ahmetson/handler-lib/base"
@@ -13,8 +14,8 @@ import (
 
 // A Context handles the config of the contexts
 type Context struct {
-	engine       config.Interface
-	depManager   dep_manager2.Interface
+	configClient configClient.Interface
+	depManager   depmanager2.Interface
 	controller   base.Interface
 	serviceReady bool
 }
@@ -24,18 +25,32 @@ type Context struct {
 func New() (*Context, error) {
 	ctx := &Context{}
 
-	engine, err := config.NewDev()
+	engine, err := configHandler.New()
 	if err != nil {
-		return nil, fmt.Errorf("config.New: %w", err)
+		return nil, fmt.Errorf("configHandler.New: %w", err)
+	}
+	err = engine.Start()
+	if err != nil {
+		return nil, fmt.Errorf("configHandler.Start: %w", err)
 	}
 
-	ctx.SetConfig(engine)
-	if err := devConfig.SetDevDefaults(engine); err != nil {
+	socket, err := configClient.New()
+	if err != nil {
+		return nil, fmt.Errorf("configClient.New: %w", err)
+	}
+	ctx.SetConfig(socket)
+	if err := devConfig.SetDevDefaults(socket); err != nil {
 		return nil, fmt.Errorf("config.SetDevDefaults: %w", err)
 	}
 
-	binPath := engine.GetString(devConfig.BinKey)
-	srcPath := engine.GetString(devConfig.SrcKey)
+	binPath, err := socket.String(devConfig.BinKey)
+	if err != nil {
+		return nil, fmt.Errorf("configClient.String(%s): %w", devConfig.BinKey, err)
+	}
+	srcPath, err := socket.String(devConfig.SrcKey)
+	if err != nil {
+		return nil, fmt.Errorf("configClient.String(%s): %w", devConfig.SrcKey, err)
+	}
 
 	depManager, err := dep_manager.New(srcPath, binPath)
 	if err != nil {
@@ -53,18 +68,18 @@ func New() (*Context, error) {
 // For the development context, it could be config-lib that reads the local file system.
 //
 // Setting up the configuration prepares the context by creating directories.
-func (ctx *Context) SetConfig(engine config.Interface) {
-	ctx.engine = engine
+func (ctx *Context) SetConfig(socket configClient.Interface) {
+	ctx.configClient = socket
 }
 
 // Config returns the config engine in the context.
-func (ctx *Context) Config() config.Interface {
-	return ctx.engine
+func (ctx *Context) Config() configClient.Interface {
+	return ctx.configClient
 }
 
 // SetDepManager sets the dependency manager in the context.
-func (ctx *Context) SetDepManager(depManager dep_manager2.Interface) error {
-	if ctx.engine == nil {
+func (ctx *Context) SetDepManager(depManager depmanager2.Interface) error {
+	if ctx.configClient == nil {
 		return fmt.Errorf("no configuration")
 	}
 
@@ -74,7 +89,7 @@ func (ctx *Context) SetDepManager(depManager dep_manager2.Interface) error {
 }
 
 // DepManager returns the dependency manager
-func (ctx *Context) DepManager() dep_manager2.Interface {
+func (ctx *Context) DepManager() depmanager2.Interface {
 	return ctx.depManager
 }
 

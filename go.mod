@@ -18,7 +18,7 @@ require (
 	github.com/ahmetson/client-lib v0.0.0-20230814161235-c87ba71fcc40
 	github.com/ahmetson/common-lib v0.0.0-20230717140750-5e95e61d69c2
 	github.com/ahmetson/config-lib v0.0.0-20230814154521-44373928ec1b
-	github.com/ahmetson/handler-lib v0.0.0-20230825220922-701846877651
+	github.com/ahmetson/handler-lib v0.0.0-20230830171434-f5b93c8d073b
 	github.com/ahmetson/log-lib v0.0.0-20230814152407-68a090e4a798
 	github.com/ahmetson/os-lib v0.0.0-20230814151458-0e1874b6df31
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2

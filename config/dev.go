@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	configLib "github.com/ahmetson/config-lib"
+	configClient "github.com/ahmetson/config-lib/client"
 	"github.com/ahmetson/os-lib/path"
 	"path/filepath"
 )
@@ -24,7 +24,7 @@ const (
 //		/_sds/bin/
 //	 /_sds/source/github.com.ahmetson.proxy-lib/main.go
 //	 /_sds/bin/github.com.ahmetson.proxy-lib.exe
-func SetDevDefaults(engine configLib.Interface) error {
+func SetDevDefaults(engine configClient.Interface) error {
 	currentDir, err := path.CurrentDir()
 	if err != nil {
 		return fmt.Errorf("path.CurrentDir: %w", err)
@@ -33,8 +33,12 @@ func SetDevDefaults(engine configLib.Interface) error {
 	srcPath := filepath.Join(currentDir, "_sds", "src")
 	binPath := filepath.Join(currentDir, "_sds", "bin")
 
-	engine.SetDefault(SrcKey, srcPath)
-	engine.SetDefault(BinKey, binPath)
+	if err := engine.SetDefault(SrcKey, srcPath); err != nil {
+		return fmt.Errorf("configClient.SetDefault('%s', '%s'): %w", SrcKey, srcPath, err)
+	}
+	if err := engine.SetDefault(BinKey, binPath); err != nil {
+		return fmt.Errorf("configClient.SetDefault('%s', '%s'): %w", BinKey, binPath, err)
+	}
 
 	return nil
 }
