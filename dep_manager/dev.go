@@ -36,20 +36,27 @@ type DepManager struct {
 //
 // It will prepare the directories for source codes and binary.
 // If preparation fails, it will throw an error.
-func New(srcPath string, binPath string) (*DepManager, error) {
-	if err := path.MakeDir(binPath); err != nil {
-		return nil, fmt.Errorf("path.MakeDir(%s): %w", binPath, err)
-	}
-	if err := path.MakeDir(srcPath); err != nil {
-		return nil, fmt.Errorf("path.MakeDir(%s): %w", srcPath, err)
-	}
-
+func New() *DepManager {
 	return &DepManager{
-		Src:  srcPath,
-		Bin:  binPath,
+		Src:  "",
+		Bin:  "",
 		cmd:  make(map[string]*exec.Cmd, 0),
 		done: make(map[string]chan error, 0),
-	}, nil
+	}
+}
+
+func (dep *DepManager) SetPaths(srcPath string, binPath string) error {
+	if err := path.MakeDir(binPath); err != nil {
+		return fmt.Errorf("path.MakeDir(%s): %w", binPath, err)
+	}
+	if err := path.MakeDir(srcPath); err != nil {
+		return fmt.Errorf("path.MakeDir(%s): %w", srcPath, err)
+	}
+
+	dep.Src = srcPath
+	dep.Bin = binPath
+
+	return nil
 }
 
 // Close the dependency

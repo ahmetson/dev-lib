@@ -6,7 +6,7 @@ import (
 	configClient "github.com/ahmetson/config-lib/client"
 	configHandler "github.com/ahmetson/config-lib/handler"
 	config2 "github.com/ahmetson/dev-lib/base/config"
-	depmanager2 "github.com/ahmetson/dev-lib/base/dep_manager"
+	baseDepManager "github.com/ahmetson/dev-lib/base/dep_manager"
 	devConfig "github.com/ahmetson/dev-lib/config"
 	"github.com/ahmetson/dev-lib/dep_manager"
 	"github.com/ahmetson/handler-lib/base"
@@ -15,7 +15,7 @@ import (
 // A Context handles the config of the contexts
 type Context struct {
 	configClient configClient.Interface
-	depManager   depmanager2.Interface
+	depManager   baseDepManager.Interface
 	controller   base.Interface
 	serviceReady bool
 }
@@ -25,38 +25,17 @@ type Context struct {
 func New() (*Context, error) {
 	ctx := &Context{}
 
-	engine, err := configHandler.New()
-	if err != nil {
-		return nil, fmt.Errorf("configHandler.New: %w", err)
-	}
-	err = engine.Start()
-	if err != nil {
-		return nil, fmt.Errorf("configHandler.Start: %w", err)
-	}
-
+	// todo make it call after config handler initiated.
+	// config handler broadcasts the status.
+	// once its ready, the client is created.
+	// then dep manager is created.
 	socket, err := configClient.New()
 	if err != nil {
 		return nil, fmt.Errorf("configClient.New: %w", err)
 	}
 	ctx.SetConfig(socket)
-	if err := devConfig.SetDevDefaults(socket); err != nil {
-		return nil, fmt.Errorf("config.SetDevDefaults: %w", err)
-	}
 
-	binPath, err := socket.String(devConfig.BinKey)
-	if err != nil {
-		return nil, fmt.Errorf("configClient.String(%s): %w", devConfig.BinKey, err)
-	}
-	srcPath, err := socket.String(devConfig.SrcKey)
-	if err != nil {
-		return nil, fmt.Errorf("configClient.String(%s): %w", devConfig.SrcKey, err)
-	}
-
-	depManager, err := dep_manager.New(srcPath, binPath)
-	if err != nil {
-		return nil, fmt.Errorf("dep_manager.new: %w", err)
-	}
-
+	depManager := dep_manager.New()
 	if err := ctx.SetDepManager(depManager); err != nil {
 		return nil, fmt.Errorf("ctx.SetDepManager: %w", err)
 	}
@@ -78,7 +57,7 @@ func (ctx *Context) Config() configClient.Interface {
 }
 
 // SetDepManager sets the dependency manager in the context.
-func (ctx *Context) SetDepManager(depManager depmanager2.Interface) error {
+func (ctx *Context) SetDepManager(depManager baseDepManager.Interface) error {
 	if ctx.configClient == nil {
 		return fmt.Errorf("no configuration")
 	}
@@ -89,11 +68,46 @@ func (ctx *Context) SetDepManager(depManager depmanager2.Interface) error {
 }
 
 // DepManager returns the dependency manager
-func (ctx *Context) DepManager() depmanager2.Interface {
+func (ctx *Context) DepManager() baseDepManager.Interface {
 	return ctx.depManager
 }
 
 // Type returns the context type. Useful to identify contexts in the generic functions.
 func (ctx *Context) Type() config2.ContextType {
 	return config2.DevContext
+}
+
+// Start the context
+func (ctx *Context) Start() error {
+	engine, err := configHandler.New()
+	if err != nil {
+		return fmt.Errorf("configHandler.New: %w", err)
+	}
+
+	err = engine.Start()
+	if err != nil {
+		return fmt.Errorf("configHandler.Start: %w", err)
+	}
+
+	if err := devConfig.SetDevDefaults(ctx.configClient); err != nil {
+		return fmt.Errorf("config.SetDevDefaults: %w", err)
+	}
+
+	binPath, err := ctx.configClient.String(devConfig.BinKey)
+	if err != nil {
+		return fmt.Errorf("configClient.String(%s): %w", devConfig.BinKey, err)
+	}
+	srcPath, err := ctx.configClient.String(devConfig.SrcKey)
+	if err != nil {
+		return fmt.Errorf("configClient.String(%s): %w", devConfig.SrcKey, err)
+	}
+
+	depManager := ctx.DepManager().(*dep_manager.DepManager)
+	if err := depManager.SetPaths(binPath, srcPath); err != nil {
+		return fmt.Errorf("depManager.SetPaths('%s', '%s'): %w", binPath, srcPath, err)
+	}
+
+	// todo run dep manager
+
+	return nil
 }

@@ -14,6 +14,7 @@ type Interface interface {
 	SetDepManager(dep_manager.Interface) error
 	DepManager() dep_manager.Interface
 	Type() ctxConfig.ContextType
+	Start() error
 }
 
 // A New orchestra
