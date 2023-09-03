@@ -52,3 +52,14 @@ If it's not, then it will call a run.
 Then it will call itself.
 
 The service will have a command to "shutdown" contexts. As well as "rebuild"
+
+----
+
+# Dep Manager
+Dep manager has sockets that work with the service.
+The reason is to reduce the logic in the service. 
+Changing the dependencies is done by context.
+The dev manager without a socket will be synchronous.
+That means the service will be blocked until it finishes the dep process.
+
+Now, the context will keep track of all dependencies and their management.
