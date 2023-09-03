@@ -10,15 +10,12 @@ import (
 	"github.com/ahmetson/dev-lib/dep_client"
 	"github.com/ahmetson/dev-lib/dep_handler"
 	"github.com/ahmetson/dev-lib/dep_manager"
-	"github.com/ahmetson/handler-lib/base"
 )
 
 // A Context handles the config of the contexts
 type Context struct {
 	configClient configClient.Interface
 	depClient    dep_client.Interface
-	controller   base.Interface
-	serviceReady bool
 }
 
 // New creates Developer context.
