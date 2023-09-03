@@ -5,8 +5,9 @@ import (
 	"fmt"
 	configClient "github.com/ahmetson/config-lib/client"
 	configHandler "github.com/ahmetson/config-lib/handler"
-	config2 "github.com/ahmetson/dev-lib/base/config"
+	baseConfig "github.com/ahmetson/dev-lib/base/config"
 	devConfig "github.com/ahmetson/dev-lib/config"
+	"github.com/ahmetson/dev-lib/dep_client"
 	"github.com/ahmetson/dev-lib/dep_handler"
 	"github.com/ahmetson/dev-lib/dep_manager"
 	"github.com/ahmetson/handler-lib/base"
@@ -15,7 +16,7 @@ import (
 // A Context handles the config of the contexts
 type Context struct {
 	configClient configClient.Interface
-	depClient    configClient.Interface
+	depClient    dep_client.Interface
 	controller   base.Interface
 	serviceReady bool
 }
@@ -25,20 +26,19 @@ type Context struct {
 func New() (*Context, error) {
 	ctx := &Context{}
 
-	// todo make it call after config handler initiated.
-	// config handler broadcasts the status.
-	// once its ready, the client is created.
-	// then dep manager is created.
 	socket, err := configClient.New()
 	if err != nil {
 		return nil, fmt.Errorf("configClient.New: %w", err)
 	}
 	ctx.SetConfig(socket)
 
-	// todo once we have depClient, use it here
-	//if err := ctx.SetDepManager(depManager); err != nil {
-	//	return nil, fmt.Errorf("ctx.SetDepManager: %w", err)
-	//}
+	depClient, err := dep_client.New()
+	if err != nil {
+		return nil, fmt.Errorf("dep_client.New: %w", err)
+	}
+	if err := ctx.SetDepManager(depClient); err != nil {
+		return nil, fmt.Errorf("ctx.SetDepManager: %w", err)
+	}
 
 	return ctx, nil
 }
@@ -57,7 +57,7 @@ func (ctx *Context) Config() configClient.Interface {
 }
 
 // SetDepManager sets the dependency manager in the context.
-func (ctx *Context) SetDepManager(depClient configClient.Interface) error {
+func (ctx *Context) SetDepManager(depClient dep_client.Interface) error {
 	if ctx.configClient == nil {
 		return fmt.Errorf("no configuration")
 	}
@@ -68,13 +68,13 @@ func (ctx *Context) SetDepManager(depClient configClient.Interface) error {
 }
 
 // DepManager returns the dependency manager
-func (ctx *Context) DepManager() configClient.Interface {
+func (ctx *Context) DepManager() dep_client.Interface {
 	return ctx.depClient
 }
 
 // Type returns the context type. Useful to identify contexts in the generic functions.
-func (ctx *Context) Type() config2.ContextType {
-	return config2.DevContext
+func (ctx *Context) Type() baseConfig.ContextType {
+	return baseConfig.DevContext
 }
 
 // Start the context

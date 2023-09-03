@@ -17,11 +17,24 @@ type Client struct {
 	socket *client.Socket
 }
 
+type Interface interface {
+	Close() error
+	Timeout(duration time.Duration)
+	Attempt(attempt uint8)
+
+	CloseDep(depClient *clientConfig.Client) error
+	Uninstall(src *dep.Src) error
+	Run(url string, id string, parent *clientConfig.Client) error
+	Install(src *dep.Src) error
+	Running(depClient *clientConfig.Client) (bool, error)
+	Installed(url string) (bool, error)
+}
+
 func New() (*Client, error) {
 	configHandler := handler.SocketConfig()
 	socketType := handlerConfig.SocketType(configHandler.Type)
 	c := clientConfig.New("", configHandler.Id, configHandler.Port, socketType).
-		UrlFunc(handlerConfig.ExternalUrlByClient)
+		UrlFunc(clientConfig.Url)
 
 	socket, err := client.New(c)
 	if err != nil {
