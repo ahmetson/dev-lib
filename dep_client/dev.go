@@ -6,7 +6,6 @@ import (
 	clientConfig "github.com/ahmetson/client-lib/config"
 	"github.com/ahmetson/common-lib/data_type/key_value"
 	"github.com/ahmetson/common-lib/message"
-	"github.com/ahmetson/config-lib/handler"
 	"github.com/ahmetson/dev-lib/dep_handler"
 	"github.com/ahmetson/dev-lib/source"
 	handlerConfig "github.com/ahmetson/handler-lib/config"
@@ -31,7 +30,7 @@ type Interface interface {
 }
 
 func New() (*Client, error) {
-	configHandler := handler.SocketConfig()
+	configHandler := dep_handler.ServiceConfig()
 	socketType := handlerConfig.SocketType(configHandler.Type)
 	c := clientConfig.New("", configHandler.Id, configHandler.Port, socketType).
 		UrlFunc(clientConfig.Url)
