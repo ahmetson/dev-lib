@@ -88,7 +88,7 @@ func (h *DepHandler) onDepRunning(req message.Request) message.Reply {
 		return req.Fail(fmt.Sprintf("kv.Interface: %v", err))
 	}
 
-	c.UrlFunc(handlerConfig.ExternalUrlByClient)
+	c.UrlFunc(clientConfig.Url)
 
 	running, err := h.manager.Running(&c)
 	if err != nil {
