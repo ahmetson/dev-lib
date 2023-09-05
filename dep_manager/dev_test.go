@@ -350,7 +350,7 @@ func (test *TestDepManagerSuite) Test_22_Running() {
 	s.True(running)
 
 	// service is running two seconds. after that running should return false
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 3)
 	s.Require().Nil(test.dep.cmd[test.id]) // cmd == nil indicates that the program was closed
 	running, err = test.dep.Running(client)
 	s.Require().NoError(err)

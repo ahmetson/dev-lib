@@ -223,7 +223,7 @@ func (test *TestDepHandlerSuite) Test_13_Run() {
 	runningReq := message.Request{
 		Command: DepRunning,
 		Parameters: key_value.Empty().
-			Set("source", depClient),
+			Set("dep", depClient),
 	}
 	running, err := test.client.Request(&runningReq)
 	s().NoError(err)
@@ -236,7 +236,7 @@ func (test *TestDepHandlerSuite) Test_13_Run() {
 	closeReq := message.Request{
 		Command: CloseDep,
 		Parameters: key_value.Empty().
-			Set("source", depClient),
+			Set("dep", depClient),
 	}
 	running, err = test.client.Request(&closeReq)
 	s().NoError(err)
