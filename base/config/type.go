@@ -8,4 +8,6 @@ const (
 	DevContext ContextType = "development"
 	// DefaultContext indicates that the context is unspecified.
 	DefaultContext ContextType = "default"
+
+	ContextFlag = "context"
 )
