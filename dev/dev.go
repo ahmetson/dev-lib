@@ -17,12 +17,13 @@ type Context struct {
 	configClient configClient.Interface
 	depClient    dep_client.Interface
 	err          error
+	running      bool
 }
 
 // New creates Developer context.
 // Loads it with the Dev Configuration and Dev DepManager Manager.
 func New() (*Context, error) {
-	ctx := &Context{err: nil}
+	ctx := &Context{err: nil, running: false}
 
 	socket, err := configClient.New()
 	if err != nil {
@@ -43,6 +44,10 @@ func New() (*Context, error) {
 
 func (ctx *Context) Error() error {
 	return ctx.err
+}
+
+func (ctx *Context) Running() bool {
+	return ctx.running
 }
 
 // SetConfig sets the config engine of the given type.
@@ -114,6 +119,8 @@ func (ctx *Context) Run() error {
 	if err != nil {
 		return fmt.Errorf("dep_handler.New: %w", err)
 	}
+
+	ctx.running = true
 
 	err = depHandler.Run()
 	if err != nil {
