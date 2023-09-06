@@ -155,7 +155,7 @@ func (h *DepHandler) onRunDep(req message.Request) message.Reply {
 
 	err = h.manager.Run(url, id, &parent, h.logger)
 	if err != nil {
-		return req.Fail(fmt.Sprintf("h.manager.Run(url: '%s', id: '%s'): %v", url, id, err))
+		return req.Fail(fmt.Sprintf("h.manager.Start(url: '%s', id: '%s'): %v", url, id, err))
 	}
 
 	return req.Ok(key_value.Empty())
@@ -217,8 +217,8 @@ func (h *DepHandler) Close() error {
 	return h.handler.Close()
 }
 
-// Run the dependency handler with the available operations.
-func (h *DepHandler) Run() error {
+// Start the dependency handler with the available operations.
+func (h *DepHandler) Start() error {
 	if err := h.handler.Route(DepInstalled, h.onDepInstalled); err != nil {
 		return fmt.Errorf("h.handler.Route('%s'): %v", DepInstalled, err)
 	}
@@ -238,5 +238,5 @@ func (h *DepHandler) Run() error {
 		return fmt.Errorf("h.handler.Route('%s'): %v", CloseDep, err)
 	}
 
-	return h.handler.Run()
+	return h.handler.Start()
 }

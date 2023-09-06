@@ -173,7 +173,7 @@ func (dep *DepManager) build(url string, logger *log.Logger) error {
 	cmd.Stderr = logger.Child(url + "_err")
 	err = cmd.Run()
 	if err != nil {
-		return fmt.Errorf("cmd.Run: %w", err)
+		return fmt.Errorf("cmd.Start: %w", err)
 	}
 	return nil
 }
@@ -196,7 +196,7 @@ func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client, l
 	cmd.Stderr = logger.Child(id + "_err")
 	err := cmd.Start()
 	if err != nil {
-		return fmt.Errorf("cmd.Run: %w", err)
+		return fmt.Errorf("cmd.Start: %w", err)
 	}
 	dep.cmd[id] = cmd
 	dep.wait(id)
@@ -307,7 +307,7 @@ func cleanBuild(srcUrl string, logger *log.Logger) error {
 	cmd.Stderr = logger.Child(srcUrl + "_err")
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("cmd.Run: %w", err)
+		return fmt.Errorf("cmd.Start: %w", err)
 	}
 
 	return nil

@@ -15,7 +15,7 @@ type Interface interface {
 	SetDepManager(dep_client.Interface) error
 	DepManager() dep_client.Interface
 	Type() ctxConfig.ContextType
-	Run() error
+	Start() error
 	Running() bool
 }
 

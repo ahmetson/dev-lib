@@ -53,9 +53,9 @@ func (test *TestDepClientSuite) SetupTest() {
 	test.dep, err = dep_handler.New(manager)
 	s().NoError(err)
 
-	// Run the handler
+	// Start the handler
 	go func() {
-		s().NoError(test.dep.Run())
+		s().NoError(test.dep.Start())
 	}()
 
 	// wait a bit for closing

@@ -56,9 +56,9 @@ func (test *TestDepHandlerSuite) SetupTest() {
 	test.dep, err = New(manager)
 	s().NoError(err)
 
-	// Run the handler
+	// Start the handler
 	go func() {
-		s().NoError(test.dep.Run())
+		s().NoError(test.dep.Start())
 	}()
 
 	// wait a bit for closing
@@ -182,8 +182,8 @@ func (test *TestDepHandlerSuite) Test_11_Uninstall() {
 	s().False(res)
 }
 
-// Test_13_Run tests DepRunning, RunDep and CloseDep commands.
-func (test *TestDepHandlerSuite) Test_13_Run() {
+// Test_13_Start tests DepRunning, RunDep and CloseDep commands.
+func (test *TestDepHandlerSuite) Test_13_Start() {
 	s := test.Suite.Require
 
 	depClient := &clientConfig.Client{

@@ -16,14 +16,13 @@ import (
 type Context struct {
 	configClient configClient.Interface
 	depClient    dep_client.Interface
-	err          error
 	running      bool
 }
 
 // New creates Developer context.
 // Loads it with the Dev Configuration and Dev DepManager Manager.
 func New() (*Context, error) {
-	ctx := &Context{err: nil, running: false}
+	ctx := &Context{}
 
 	socket, err := configClient.New()
 	if err != nil {
@@ -40,10 +39,6 @@ func New() (*Context, error) {
 	}
 
 	return ctx, nil
-}
-
-func (ctx *Context) Error() error {
-	return ctx.err
 }
 
 func (ctx *Context) Running() bool {
@@ -84,19 +79,18 @@ func (ctx *Context) Type() baseConfig.ContextType {
 	return baseConfig.DevContext
 }
 
-// Run the context
-func (ctx *Context) Run() error {
+// Start the context
+func (ctx *Context) Start() error {
+	ctx.running = true
+
 	engine, err := configHandler.New()
 	if err != nil {
 		return fmt.Errorf("configHandler.New: %w", err)
 	}
 
-	go func() {
-		err := engine.Run()
-		if err != nil {
-			ctx.err = fmt.Errorf("configHandler.Run: %w", err)
-		}
-	}()
+	if err := engine.Start(); err != nil {
+		return fmt.Errorf("configHandler.Start: %w", err)
+	}
 
 	if err := devConfig.SetDevDefaults(ctx.configClient); err != nil {
 		return fmt.Errorf("config.SetDevDefaults: %w", err)
@@ -120,15 +114,10 @@ func (ctx *Context) Run() error {
 		return fmt.Errorf("dep_handler.New: %w", err)
 	}
 
-	ctx.running = true
-
-	err = depHandler.Run()
+	err = depHandler.Start()
 	if err != nil {
 		return fmt.Errorf("depHandler: %w", err)
 	}
 
-	if ctx.err != nil {
-		return ctx.err
-	}
 	return nil
 }
