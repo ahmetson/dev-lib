@@ -196,7 +196,7 @@ func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client, l
 	cmd.Stderr = logger.Child(id + "_err")
 	err := cmd.Start()
 	if err != nil {
-		return fmt.Errorf("cmd.Start: %w", err)
+		return fmt.Errorf("cmd.Run: %w", err)
 	}
 	dep.cmd[id] = cmd
 	dep.wait(id)

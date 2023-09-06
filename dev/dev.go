@@ -16,12 +16,13 @@ import (
 type Context struct {
 	configClient configClient.Interface
 	depClient    dep_client.Interface
+	err          error
 }
 
 // New creates Developer context.
 // Loads it with the Dev Configuration and Dev DepManager Manager.
 func New() (*Context, error) {
-	ctx := &Context{}
+	ctx := &Context{err: nil}
 
 	socket, err := configClient.New()
 	if err != nil {
@@ -38,6 +39,10 @@ func New() (*Context, error) {
 	}
 
 	return ctx, nil
+}
+
+func (ctx *Context) Error() error {
+	return ctx.err
 }
 
 // SetConfig sets the config engine of the given type.
@@ -74,17 +79,19 @@ func (ctx *Context) Type() baseConfig.ContextType {
 	return baseConfig.DevContext
 }
 
-// Start the context
-func (ctx *Context) Start() error {
+// Run the context
+func (ctx *Context) Run() error {
 	engine, err := configHandler.New()
 	if err != nil {
 		return fmt.Errorf("configHandler.New: %w", err)
 	}
 
-	err = engine.Start()
-	if err != nil {
-		return fmt.Errorf("configHandler.Start: %w", err)
-	}
+	go func() {
+		err := engine.Run()
+		if err != nil {
+			ctx.err = fmt.Errorf("configHandler.Run: %w", err)
+		}
+	}()
 
 	if err := devConfig.SetDevDefaults(ctx.configClient); err != nil {
 		return fmt.Errorf("config.SetDevDefaults: %w", err)
@@ -108,10 +115,13 @@ func (ctx *Context) Start() error {
 		return fmt.Errorf("dep_handler.New: %w", err)
 	}
 
-	err = depHandler.Start()
+	err = depHandler.Run()
 	if err != nil {
 		return fmt.Errorf("depHandler: %w", err)
 	}
 
+	if ctx.err != nil {
+		return ctx.err
+	}
 	return nil
 }

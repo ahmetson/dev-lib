@@ -56,8 +56,10 @@ func (test *TestDepHandlerSuite) SetupTest() {
 	test.dep, err = New(manager)
 	s().NoError(err)
 
-	// Start the handler
-	s().NoError(test.dep.Start())
+	// Run the handler
+	go func() {
+		s().NoError(test.dep.Run())
+	}()
 
 	// wait a bit for closing
 	time.Sleep(time.Millisecond * 100)

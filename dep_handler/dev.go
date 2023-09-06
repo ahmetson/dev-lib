@@ -217,8 +217,8 @@ func (h *DepHandler) Close() error {
 	return h.handler.Close()
 }
 
-// Start the dependency handler with the available operations.
-func (h *DepHandler) Start() error {
+// Run the dependency handler with the available operations.
+func (h *DepHandler) Run() error {
 	if err := h.handler.Route(DepInstalled, h.onDepInstalled); err != nil {
 		return fmt.Errorf("h.handler.Route('%s'): %v", DepInstalled, err)
 	}
@@ -238,5 +238,5 @@ func (h *DepHandler) Start() error {
 		return fmt.Errorf("h.handler.Route('%s'): %v", CloseDep, err)
 	}
 
-	return h.handler.Start()
+	return h.handler.Run()
 }

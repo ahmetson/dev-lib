@@ -53,8 +53,10 @@ func (test *TestDepClientSuite) SetupTest() {
 	test.dep, err = dep_handler.New(manager)
 	s().NoError(err)
 
-	// Start the handler
-	s().NoError(test.dep.Start())
+	// Run the handler
+	go func() {
+		s().NoError(test.dep.Run())
+	}()
 
 	// wait a bit for closing
 	time.Sleep(time.Millisecond * 100)
@@ -164,7 +166,7 @@ func (test *TestDepClientSuite) Test_13_Run() {
 	err = test.client.Install(src)
 	s().NoError(err)
 
-	// Let's run it
+	// Let's run the dependency
 	err = test.client.Run(src.Url, test.id, test.parent)
 	s().NoError(err)
 
