@@ -10,14 +10,16 @@ import (
 	"github.com/ahmetson/dev-lib/dep_client"
 	"github.com/ahmetson/dev-lib/dep_handler"
 	"github.com/ahmetson/dev-lib/dep_manager"
+	"github.com/ahmetson/handler-lib/manager_client"
 )
 
 // A Context handles the config of the contexts
 type Context struct {
-	configClient configClient.Interface
-	depClient    dep_client.Interface
-	depHandler   *dep_handler.DepHandler
-	running      bool
+	configClient      configClient.Interface
+	depClient         dep_client.Interface
+	depHandler        *dep_handler.DepHandler
+	depHandlerManager manager_client.Interface
+	running           bool
 }
 
 // New creates Developer context.
@@ -93,11 +95,12 @@ func (ctx *Context) Close() error {
 		return fmt.Errorf("ctx.Config.Close: %w", err)
 	}
 
-	if err := ctx.depHandler.Close(); err != nil {
+	if err := ctx.depHandlerManager.Close(); err != nil {
 		return fmt.Errorf("ctx.depHandler.Close: %w", err)
 	}
 
 	ctx.depHandler = nil
+	ctx.depHandlerManager = nil
 	ctx.running = false
 
 	return nil
@@ -141,6 +144,11 @@ func (ctx *Context) Start() error {
 	err = ctx.depHandler.Start()
 	if err != nil {
 		return fmt.Errorf("depHandler: %w", err)
+	}
+
+	ctx.depHandlerManager, err = manager_client.New(dep_handler.ServiceConfig())
+	if err != nil {
+		return fmt.Errorf("manager_client.New('dep_handler'): %w", err)
 	}
 
 	return nil

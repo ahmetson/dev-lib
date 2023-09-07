@@ -213,10 +213,6 @@ func (h *DepHandler) onCloseDep(req message.Request) message.Reply {
 	return req.Ok(key_value.Empty())
 }
 
-func (h *DepHandler) Close() error {
-	return h.handler.Close()
-}
-
 // Start the dependency handler with the available operations.
 func (h *DepHandler) Start() error {
 	if err := h.handler.Route(DepInstalled, h.onDepInstalled); err != nil {

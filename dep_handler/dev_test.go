@@ -9,6 +9,7 @@ import (
 	"github.com/ahmetson/dev-lib/dep_manager"
 	"github.com/ahmetson/dev-lib/source"
 	handlerConfig "github.com/ahmetson/handler-lib/config"
+	"github.com/ahmetson/handler-lib/manager_client"
 	"github.com/ahmetson/log-lib"
 	"github.com/ahmetson/os-lib/path"
 	"testing"
@@ -23,12 +24,13 @@ import (
 type TestDepHandlerSuite struct {
 	suite.Suite
 
-	logger     *log.Logger
-	dep        *DepHandler          // the manager to test
-	currentDir string               // executable to store the binaries and source codes
-	url        string               // dependency source code
-	id         string               // the id of the dependency
-	parent     *clientConfig.Client // the info about the service to which dependency should connect
+	logger            *log.Logger
+	depHandler        *DepHandler // the manager to test
+	depHandlerManager manager_client.Interface
+	currentDir        string               // executable to store the binaries and source codes
+	url               string               // dependency source code
+	id                string               // the id of the dependency
+	parent            *clientConfig.Client // the info about the service to which dependency should connect
 
 	client *client.Socket // imitating the service
 }
@@ -59,6 +61,9 @@ func (test *TestDepHandlerSuite) SetupTest() {
 	// Start the handler
 	s().NoError(test.depHandler.Start())
 
+	test.depHandlerManager, err = manager_client.New(ServiceConfig())
+	s().NoError(err)
+
 	// wait a bit for closing
 	time.Sleep(time.Millisecond * 100)
 
@@ -88,7 +93,7 @@ func (test *TestDepHandlerSuite) TearDownTest() {
 
 	s().NoError(test.client.Close())
 
-	s().NoError(test.depHandler.Close())
+	s().NoError(test.depHandlerManager.Close())
 
 	// Wait a bit for the close of the handler thread.
 	time.Sleep(time.Millisecond * 100)
