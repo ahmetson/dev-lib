@@ -6,8 +6,8 @@ type ContextType = string
 const (
 	// DevContext indicates that all dependency proxies are in the local machine
 	DevContext ContextType = "development"
-	// DefaultContext indicates that the context is unspecified.
-	DefaultContext ContextType = "default"
+	// UnknownContext indicates that the context is unspecified.
+	UnknownContext ContextType = "default"
 
 	ContextFlag = "context"
 )

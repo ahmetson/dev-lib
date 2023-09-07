@@ -22,7 +22,7 @@ func (test *TestCtxSuite) Test_0_New() {
 	s := &test.Suite
 
 	// Before testing, we make sure that the files don't exist
-	_, err := New(ctxConfig.DefaultContext)
+	_, err := New(ctxConfig.UnknownContext)
 	s.Require().Error(err, "only dev context supported")
 
 	ctx, err := New(ctxConfig.DevContext)
