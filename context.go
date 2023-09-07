@@ -16,7 +16,7 @@ type Interface interface {
 	DepManager() dep_client.Interface
 	Type() ctxConfig.ContextType
 	Start() error
-	Close() error
+	Close() error // Close the dep handler and config handler. The dep manager client is not closed
 	Running() bool
 }
 
