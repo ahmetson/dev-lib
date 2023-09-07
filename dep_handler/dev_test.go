@@ -53,13 +53,11 @@ func (test *TestDepHandlerSuite) SetupTest() {
 	err = manager.SetPaths(srcPath, binPath)
 	s().NoError(err)
 
-	test.dep, err = New(manager)
+	test.depHandler, err = New(manager)
 	s().NoError(err)
 
 	// Start the handler
-	go func() {
-		s().NoError(test.dep.Start())
-	}()
+	s().NoError(test.depHandler.Start())
 
 	// wait a bit for closing
 	time.Sleep(time.Millisecond * 100)
@@ -90,7 +88,7 @@ func (test *TestDepHandlerSuite) TearDownTest() {
 
 	s().NoError(test.client.Close())
 
-	s().NoError(test.dep.Close())
+	s().NoError(test.depHandler.Close())
 
 	// Wait a bit for the close of the handler thread.
 	time.Sleep(time.Millisecond * 100)
