@@ -16,6 +16,7 @@ import (
 type Context struct {
 	configClient configClient.Interface
 	depClient    dep_client.Interface
+	depHandler   *dep_handler.DepHandler
 	running      bool
 }
 
@@ -79,6 +80,29 @@ func (ctx *Context) Type() baseConfig.ContextType {
 	return baseConfig.DevContext
 }
 
+// Close the dep handler and config handler. The dep manager client is not closed
+func (ctx *Context) Close() error {
+	if !ctx.running {
+		return nil
+	}
+	if ctx.depHandler == nil {
+		return nil
+	}
+
+	if err := ctx.Config().Close(); err != nil {
+		return fmt.Errorf("ctx.Config.Close: %w", err)
+	}
+
+	if err := ctx.depHandler.Close(); err != nil {
+		return fmt.Errorf("ctx.depHandler.Close: %w", err)
+	}
+
+	ctx.depHandler = nil
+	ctx.running = false
+
+	return nil
+}
+
 // Start the context
 func (ctx *Context) Start() error {
 	ctx.running = true
@@ -109,12 +133,12 @@ func (ctx *Context) Start() error {
 	if err := depManager.SetPaths(binPath, srcPath); err != nil {
 		return fmt.Errorf("depManager.SetPaths('%s', '%s'): %w", binPath, srcPath, err)
 	}
-	depHandler, err := dep_handler.New(depManager)
+	ctx.depHandler, err = dep_handler.New(depManager)
 	if err != nil {
 		return fmt.Errorf("dep_handler.New: %w", err)
 	}
 
-	err = depHandler.Start()
+	err = ctx.depHandler.Start()
 	if err != nil {
 		return fmt.Errorf("depHandler: %w", err)
 	}

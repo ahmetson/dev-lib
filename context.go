@@ -16,6 +16,7 @@ type Interface interface {
 	DepManager() dep_client.Interface
 	Type() ctxConfig.ContextType
 	Start() error
+	Close() error
 	Running() bool
 }
 
