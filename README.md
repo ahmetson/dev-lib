@@ -1,8 +1,9 @@
 # Dev Lib and Context
 The *Dev* module exposes a developer context.
 
-> Running the tests sometimes leads to the failure of downloading source code or compiling it
-> Running again fixes it.
+> Running the tests sometimes leads to the failure of downloading source code or compiling it.
+> 
+> Running the tests again fixes it.
 
 The contexts access to the *config* engine.
 And to the *dep* manager.
