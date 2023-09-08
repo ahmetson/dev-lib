@@ -30,7 +30,7 @@ type TestDepManagerSuite struct {
 // Make sure that Account is set to five
 // before each test
 func (test *TestDepManagerSuite) SetupTest() {
-	logger, _ := log.New("test source manager", false)
+	logger, _ := log.New("TestDepManagerSuite", false)
 	test.logger = logger
 
 	currentDir, err := path.CurrentDir()

@@ -19,7 +19,7 @@ type TestTypeSuite struct {
 func (suite *TestTypeSuite) SetupTest() {}
 
 func (suite *TestTypeSuite) TestConstants() {
-	fmt.Printf("context types: %s, %s\n", DevContext, UnknownContext)
+	fmt.Printf("Context Types: %s, %s\n", DevContext, UnknownContext)
 }
 
 // In order for 'go test' to run this suite, we need to create
