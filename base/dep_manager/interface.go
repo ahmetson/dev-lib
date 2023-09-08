@@ -18,7 +18,7 @@ type Interface interface {
 	// Install the dependency from the source code. It compiles it.
 	Install(src *source.Src, logger *log.Logger) error
 	// Run the dependency. The url of the dependency. It's id. and the parameters of the parent to connect to.
-	Run(url string, id string, parent *clientConfig.Client, logger *log.Logger) error
+	Run(url string, id string, parent *clientConfig.Client) error
 	// Uninstall the dependency.
 	Uninstall(src *source.Src) error
 	// Close the given dependency service

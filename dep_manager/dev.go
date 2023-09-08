@@ -95,7 +95,8 @@ func (dep *DepManager) Installed(url string) bool {
 }
 
 // Install loads the dependency source code, and builds it.
-func (dep *DepManager) Install(src *source.Src, logger *log.Logger) error {
+func (dep *DepManager) Install(src *source.Src, parent *log.Logger) error {
+	logger := parent.Child("install", "srcUrl", src.Url)
 	// check for a source exist
 	srcExist, err := dep.srcExist(src.Url)
 	if err != nil {
@@ -179,7 +180,7 @@ func (dep *DepManager) build(url string, logger *log.Logger) error {
 }
 
 // Run runs the binary. If the binary isn't running, then it will return an error.
-func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client, logger *log.Logger) error {
+func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client) error {
 	binUrl := path.BinPath(dep.Bin, urlToFileName(url))
 	configFlag := fmt.Sprintf("--url=%s", url)
 	idFlag := fmt.Sprintf("--id=%s", id)
@@ -191,10 +192,19 @@ func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client, l
 	dep.done[id] = make(chan error, 1)
 	dep.onStop(id, dep.done[id])
 
+	logger, err := log.New(id, false)
+	if err != nil {
+		return fmt.Errorf("log.New('%s'): %w", id, err)
+	}
+	errLogger, err := log.New(id+"Err", false)
+	if err != nil {
+		return fmt.Errorf("log.New('%sErr'): %w", id, err)
+	}
+
 	cmd := exec.Command(binUrl, args...)
-	cmd.Stdout = logger.Child(id)
-	cmd.Stderr = logger.Child(id + "_err")
-	err := cmd.Start()
+	cmd.Stdout = logger
+	cmd.Stderr = errLogger
+	err = cmd.Start()
 	if err != nil {
 		return fmt.Errorf("cmd.Start: %w", err)
 	}

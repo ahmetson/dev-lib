@@ -153,7 +153,7 @@ func (h *DepHandler) onRunDep(req message.Request) message.Reply {
 		return req.Fail(fmt.Sprintf("req.Parameters.GetString('id'): %v", err))
 	}
 
-	err = h.manager.Run(url, id, &parent, h.logger)
+	err = h.manager.Run(url, id, &parent)
 	if err != nil {
 		return req.Fail(fmt.Sprintf("h.manager.Start(url: '%s', id: '%s'): %v", url, id, err))
 	}

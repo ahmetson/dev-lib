@@ -276,7 +276,7 @@ func (test *TestDepManagerSuite) Test_20_Run() {
 	s.NoError(err)
 
 	// Let's run it, it should exit immediately
-	err = test.dep.Run(src.Url, test.id, test.parent, test.logger)
+	err = test.dep.Run(src.Url, test.id, test.parent)
 	s.Require().NoError(err)
 
 	// Just to see the exit message
@@ -302,7 +302,7 @@ func (test *TestDepManagerSuite) Test_21_RunError() {
 	s.NoError(err)
 
 	// Let's run it
-	err = test.dep.Run(src.Url, test.id, test.parent, test.logger)
+	err = test.dep.Run(src.Url, test.id, test.parent)
 	s.Require().NoError(err)
 
 	// Just to see the exit message.
@@ -337,7 +337,7 @@ func (test *TestDepManagerSuite) Test_22_Running() {
 	s.NoError(err)
 
 	// Let's run it
-	err = test.dep.Run(src.Url, test.id, test.parent, test.logger)
+	err = test.dep.Run(src.Url, test.id, test.parent)
 	s.Require().NoError(err)
 
 	// waiting for initialization...
