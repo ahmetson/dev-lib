@@ -170,6 +170,7 @@ func (test *TestDepClientSuite) Test_13_Run() {
 	s().NoError(err)
 
 	// Let's run the dependency
+	test.logger.Info("request to run the dependency", "srcUrl", src.Url, "id", test.id)
 	err = test.client.Run(src.Url, test.id, test.parent)
 	s().NoError(err)
 
@@ -177,11 +178,15 @@ func (test *TestDepClientSuite) Test_13_Run() {
 	time.Sleep(time.Millisecond * 100)
 
 	// check that service is running
+	test.logger.Info("check dependency status")
 	running, err := test.client.Running(depClient)
 	s().NoError(err)
 	s().True(running)
+	test.logger.Info("status returned from dependency manager", "running", running, "error", err)
 
 	// CloseDep the service
+	test.logger.Info("send a signal to close dependency")
+
 	err = test.client.CloseDep(depClient)
 	s().NoError(err)
 
@@ -189,9 +194,13 @@ func (test *TestDepClientSuite) Test_13_Run() {
 	time.Sleep(time.Millisecond * 100)
 
 	// Checking for a running source after it was closed must fail
+	test.logger.Info("check again the dependency status")
 	running, err = test.client.Running(depClient)
+	test.logger.Info("closed dependency status returned", "running", running, "error", err)
 	s().NoError(err)
 	s().False(running)
+
+	test.logger.Info("uninstall the dependency")
 
 	// Clean out the installed files
 	err = test.client.Uninstall(src)
