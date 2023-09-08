@@ -155,7 +155,7 @@ func (test *TestDepClientSuite) Test_13_Run() {
 	s := test.Suite.Require
 
 	depClient := &clientConfig.Client{
-		ServiceUrl: "test-manager",
+		ServiceUrl: test.url,
 		Id:         test.id,
 		Port:       6000,
 		TargetType: handlerConfig.SocketType(handlerConfig.ReplierType),

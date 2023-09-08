@@ -190,7 +190,7 @@ func (h *DepHandler) onUninstallDep(req message.Request) message.Reply {
 // Requires 'source' of the clientConfig.Client type.
 // Returns nothing.
 //
-// todo make it publish the result through publisher, so user won't wait for the result.
+// Todo make it publish the result through publisher, so user won't wait for the result.
 func (h *DepHandler) onCloseDep(req message.Request) message.Reply {
 	kv, err := req.Parameters.GetKeyValue("dep")
 	if err != nil {
