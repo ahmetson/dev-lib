@@ -7,7 +7,7 @@ const (
 	// DevContext indicates that all dependency proxies are in the local machine
 	DevContext ContextType = "development"
 	// UnknownContext indicates that the context is unspecified.
-	UnknownContext ContextType = "default"
+	UnknownContext ContextType = "unknown"
 
 	ContextFlag = "context"
 )
