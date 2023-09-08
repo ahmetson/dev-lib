@@ -169,9 +169,9 @@ func (dep *DepManager) build(url string, logger *log.Logger) error {
 	}
 
 	cmd := exec.Command("go", "build", "-o", binUrl)
-	cmd.Stdout = logger.Child(url)
+	cmd.Stdout = logger.Child("build", "binUrl", binUrl)
 	cmd.Dir = srcUrl
-	cmd.Stderr = logger.Child(url + "_err")
+	cmd.Stderr = logger.Child("buildErr", "binUrl", binUrl)
 	err = cmd.Run()
 	if err != nil {
 		return fmt.Errorf("cmd.Start: %w", err)
@@ -237,7 +237,7 @@ func (dep *DepManager) downloadSrc(src *source.Src, logger *log.Logger) error {
 
 	options := &git.CloneOptions{
 		URL:      src.GitUrl,
-		Progress: logger,
+		Progress: logger.Child("download"),
 	}
 
 	if len(src.Branch) > 0 {
@@ -312,9 +312,9 @@ func (dep *DepManager) Uninstall(src *source.Src) error {
 // calls `go mod tidy`
 func cleanBuild(srcUrl string, logger *log.Logger) error {
 	cmd := exec.Command("go", "mod", "tidy")
-	cmd.Stdout = logger.Child(srcUrl)
+	cmd.Stdout = logger.Child("clean")
 	cmd.Dir = srcUrl
-	cmd.Stderr = logger.Child(srcUrl + "_err")
+	cmd.Stderr = logger.Child("cleanErr")
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("cmd.Start: %w", err)

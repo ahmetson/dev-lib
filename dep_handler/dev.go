@@ -39,7 +39,7 @@ func ServiceConfig() *handlerConfig.Handler {
 func New(manager dep_manager.Interface) (*DepHandler, error) {
 	handler := replier.New()
 
-	logger, err := log.New("dep-handler", true)
+	logger, err := log.New("dep_manager", true)
 	if err != nil {
 		return nil, fmt.Errorf("log.New('dep-handler'): %w", err)
 	}
