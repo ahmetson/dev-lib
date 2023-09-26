@@ -61,14 +61,14 @@ func New(manager dep_manager.Interface) (*DepHandler, error) {
 // Requires the 'url' of the dependency.
 //
 // Returns 'installed' boolean parameter
-func (h *DepHandler) onDepInstalled(req message.Request) message.Reply {
-	url, err := req.Parameters.GetString("url")
+func (h *DepHandler) onDepInstalled(req message.RequestInterface) message.ReplyInterface {
+	url, err := req.RouteParameters().StringValue("url")
 	if err != nil {
 		return req.Fail(fmt.Sprintf("req.Parameters.GetString('url'): %v", err))
 	}
 
 	installed := h.manager.Installed(url)
-	params := key_value.Empty().Set("installed", installed)
+	params := key_value.New().Set("installed", installed)
 	return req.Ok(params)
 }
 
@@ -76,8 +76,8 @@ func (h *DepHandler) onDepInstalled(req message.Request) message.Reply {
 // Requires 'dep' of the clientConfig.Client.
 //
 // Returns 'running' boolean result
-func (h *DepHandler) onDepRunning(req message.Request) message.Reply {
-	kv, err := req.Parameters.GetKeyValue("dep")
+func (h *DepHandler) onDepRunning(req message.RequestInterface) message.ReplyInterface {
+	kv, err := req.RouteParameters().NestedValue("dep")
 	if err != nil {
 		return req.Fail(fmt.Sprintf("req.Parameters.GetKeyValue('client'): %v", err))
 	}
@@ -95,7 +95,7 @@ func (h *DepHandler) onDepRunning(req message.Request) message.Reply {
 		return req.Fail(fmt.Sprintf("h.manager.Running: %v", err))
 	}
 
-	params := key_value.Empty().Set("running", running)
+	params := key_value.New().Set("running", running)
 	return req.Ok(params)
 }
 
@@ -104,8 +104,8 @@ func (h *DepHandler) onDepRunning(req message.Request) message.Reply {
 // Requires the 'src' of a source.Src type, returns nothing.
 //
 // todo create a publisher that publishes the result of the installation, so user won't wait until installation.
-func (h *DepHandler) onInstallDep(req message.Request) message.Reply {
-	kv, err := req.Parameters.GetKeyValue("src")
+func (h *DepHandler) onInstallDep(req message.RequestInterface) message.ReplyInterface {
+	kv, err := req.RouteParameters().NestedValue("src")
 	if err != nil {
 		return req.Fail(fmt.Sprintf("req.Parameters.GetKeyValue('client'): %v", err))
 	}
@@ -121,7 +121,7 @@ func (h *DepHandler) onInstallDep(req message.Request) message.Reply {
 		return req.Fail(fmt.Sprintf("h.manager.Install: %v", err))
 	}
 
-	return req.Ok(key_value.Empty())
+	return req.Ok(key_value.New())
 }
 
 // onRunDep runs the dependency.
@@ -129,8 +129,8 @@ func (h *DepHandler) onInstallDep(req message.Request) message.Reply {
 // Returns nothing.
 //
 // todo make it publish the result through publisher, so user won't wait for the result.
-func (h *DepHandler) onRunDep(req message.Request) message.Reply {
-	kv, err := req.Parameters.GetKeyValue("parent")
+func (h *DepHandler) onRunDep(req message.RequestInterface) message.ReplyInterface {
+	kv, err := req.RouteParameters().NestedValue("parent")
 	if err != nil {
 		return req.Fail(fmt.Sprintf("req.Parameters.GetKeyValue('parent'): %v", err))
 	}
@@ -143,12 +143,12 @@ func (h *DepHandler) onRunDep(req message.Request) message.Reply {
 
 	parent.UrlFunc(clientConfig.Url)
 
-	url, err := req.Parameters.GetString("url")
+	url, err := req.RouteParameters().StringValue("url")
 	if err != nil {
 		return req.Fail(fmt.Sprintf("req.Parameters.GetString('url'): %v", err))
 	}
 
-	id, err := req.Parameters.GetString("id")
+	id, err := req.RouteParameters().StringValue("id")
 	if err != nil {
 		return req.Fail(fmt.Sprintf("req.Parameters.GetString('id'): %v", err))
 	}
@@ -158,7 +158,7 @@ func (h *DepHandler) onRunDep(req message.Request) message.Reply {
 		return req.Fail(fmt.Sprintf("h.manager.Start(url: '%s', id: '%s'): %v", url, id, err))
 	}
 
-	return req.Ok(key_value.Empty())
+	return req.Ok(key_value.New())
 }
 
 // onUninstallDep uninstalls the dependency binary. if it comes with the source code, then deletes source code as well.
@@ -166,8 +166,8 @@ func (h *DepHandler) onRunDep(req message.Request) message.Reply {
 // Requires the 'src' of a source.Src type, returns nothing.
 //
 // todo creates a publisher that publishes the result of the installation, so user won't wait until installation.
-func (h *DepHandler) onUninstallDep(req message.Request) message.Reply {
-	kv, err := req.Parameters.GetKeyValue("src")
+func (h *DepHandler) onUninstallDep(req message.RequestInterface) message.ReplyInterface {
+	kv, err := req.RouteParameters().NestedValue("src")
 	if err != nil {
 		return req.Fail(fmt.Sprintf("req.Parameters.GetKeyValue('client'): %v", err))
 	}
@@ -183,7 +183,7 @@ func (h *DepHandler) onUninstallDep(req message.Request) message.Reply {
 		return req.Fail(fmt.Sprintf("h.manager.Uninstall: %v", err))
 	}
 
-	return req.Ok(key_value.Empty())
+	return req.Ok(key_value.New())
 }
 
 // onCloseDep stops the dependency.
@@ -191,8 +191,8 @@ func (h *DepHandler) onUninstallDep(req message.Request) message.Reply {
 // Returns nothing.
 //
 // Todo make it publish the result through publisher, so user won't wait for the result.
-func (h *DepHandler) onCloseDep(req message.Request) message.Reply {
-	kv, err := req.Parameters.GetKeyValue("dep")
+func (h *DepHandler) onCloseDep(req message.RequestInterface) message.ReplyInterface {
+	kv, err := req.RouteParameters().NestedValue("dep")
 	if err != nil {
 		return req.Fail(fmt.Sprintf("req.Parameters.GetKeyValue('dep'): %v", err))
 	}
@@ -210,7 +210,7 @@ func (h *DepHandler) onCloseDep(req message.Request) message.Reply {
 		return req.Fail(fmt.Sprintf("h.manager.Close: %v", err))
 	}
 
-	return req.Ok(key_value.Empty())
+	return req.Ok(key_value.New())
 }
 
 // Start the dependency handler with the available operations.

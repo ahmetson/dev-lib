@@ -61,7 +61,7 @@ func (c *Client) Close() error {
 func (c *Client) CloseDep(depClient *clientConfig.Client) error {
 	req := message.Request{
 		Command: dep_handler.CloseDep,
-		Parameters: key_value.Empty().
+		Parameters: key_value.New().
 			Set("dep", depClient),
 	}
 
@@ -77,7 +77,7 @@ func (c *Client) CloseDep(depClient *clientConfig.Client) error {
 func (c *Client) Uninstall(src *source.Src) error {
 	req := message.Request{
 		Command:    dep_handler.UninstallDep,
-		Parameters: key_value.Empty().Set("src", src),
+		Parameters: key_value.New().Set("src", src),
 	}
 
 	err := c.socket.Submit(&req)
@@ -92,7 +92,7 @@ func (c *Client) Uninstall(src *source.Src) error {
 func (c *Client) Run(url string, id string, parent *clientConfig.Client) error {
 	req := message.Request{
 		Command: dep_handler.RunDep,
-		Parameters: key_value.Empty().
+		Parameters: key_value.New().
 			Set("parent", parent).
 			Set("url", url).
 			Set("id", id),
@@ -103,7 +103,7 @@ func (c *Client) Run(url string, id string, parent *clientConfig.Client) error {
 	}
 
 	if !reply.IsOK() {
-		return fmt.Errorf("reply.Message: %s", reply.Message)
+		return fmt.Errorf("reply.Message: %s", reply.ErrorMessage())
 	}
 
 	return nil
@@ -113,7 +113,7 @@ func (c *Client) Run(url string, id string, parent *clientConfig.Client) error {
 func (c *Client) Install(src *source.Src) error {
 	req := message.Request{
 		Command:    dep_handler.InstallDep,
-		Parameters: key_value.Empty().Set("src", src),
+		Parameters: key_value.New().Set("src", src),
 	}
 	reply, err := c.socket.Request(&req)
 	if err != nil {
@@ -121,7 +121,7 @@ func (c *Client) Install(src *source.Src) error {
 	}
 
 	if !reply.IsOK() {
-		return fmt.Errorf("reply.Message: %s", reply.Message)
+		return fmt.Errorf("reply.Message: %s", reply.ErrorMessage())
 	}
 
 	return nil
@@ -131,7 +131,7 @@ func (c *Client) Install(src *source.Src) error {
 func (c *Client) Running(depClient *clientConfig.Client) (bool, error) {
 	req := message.Request{
 		Command: dep_handler.DepRunning,
-		Parameters: key_value.Empty().
+		Parameters: key_value.New().
 			Set("dep", depClient),
 	}
 
@@ -141,10 +141,10 @@ func (c *Client) Running(depClient *clientConfig.Client) (bool, error) {
 	}
 
 	if !reply.IsOK() {
-		return false, fmt.Errorf("reply.Message: %s", reply.Message)
+		return false, fmt.Errorf("reply.Message: %s", reply.ErrorMessage())
 	}
 
-	res, err := reply.Parameters.GetBoolean("running")
+	res, err := reply.ReplyParameters().BoolValue("running")
 	if err != nil {
 		return false, fmt.Errorf("reply.Parameters.GetBoolean('installed'): %w", err)
 	}
@@ -156,7 +156,7 @@ func (c *Client) Running(depClient *clientConfig.Client) (bool, error) {
 func (c *Client) Installed(url string) (bool, error) {
 	req := message.Request{
 		Command:    dep_handler.DepInstalled,
-		Parameters: key_value.Empty().Set("url", url),
+		Parameters: key_value.New().Set("url", url),
 	}
 
 	reply, err := c.socket.Request(&req)
@@ -165,10 +165,10 @@ func (c *Client) Installed(url string) (bool, error) {
 	}
 
 	if !reply.IsOK() {
-		return false, fmt.Errorf("reply.Message: %s", reply.Message)
+		return false, fmt.Errorf("reply.Message: %s", reply.ErrorMessage())
 	}
 
-	res, err := reply.Parameters.GetBoolean("installed")
+	res, err := reply.ReplyParameters().BoolValue("installed")
 	if err != nil {
 		return false, fmt.Errorf("reply.Parameters.GetBoolean('installed'): %w", err)
 	}

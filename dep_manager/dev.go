@@ -68,7 +68,7 @@ func (dep *DepManager) Close(c *clientConfig.Client) error {
 
 	closeRequest := &message.Request{
 		Command:    "close",
-		Parameters: key_value.Empty(),
+		Parameters: key_value.New(),
 	}
 	reply, err := sock.Request(closeRequest)
 	if err != nil {
@@ -76,7 +76,7 @@ func (dep *DepManager) Close(c *clientConfig.Client) error {
 	}
 
 	if !reply.IsOK() {
-		return fmt.Errorf("dependency replied: %s", reply.Message)
+		return fmt.Errorf("dependency replied: %s", reply.ErrorMessage())
 	}
 
 	err = sock.Close()

@@ -113,19 +113,19 @@ func (test *TestDepHandlerSuite) Test_10_Install() {
 	// installation must fail since nothing installed
 	req := message.Request{
 		Command:    DepInstalled,
-		Parameters: key_value.Empty().Set("url", test.url),
+		Parameters: key_value.New().Set("url", test.url),
 	}
 	rep, err := test.client.Request(&req)
 	s().NoError(err)
 	s().True(rep.IsOK())
-	res, err := rep.Parameters.GetBoolean("installed")
+	res, err := rep.ReplyParameters().BoolValue("installed")
 	s().NoError(err)
 	s().False(res)
 
 	// There should be a source code
 	installReq := message.Request{
 		Command:    InstallDep,
-		Parameters: key_value.Empty().Set("src", src),
+		Parameters: key_value.New().Set("src", src),
 	}
 	rep, err = test.client.Request(&installReq)
 	s().NoError(err)
@@ -140,7 +140,7 @@ func (test *TestDepHandlerSuite) Test_10_Install() {
 	rep, err = test.client.Request(&req)
 	s().NoError(err)
 	s().True(rep.IsOK())
-	res, err = rep.Parameters.GetBoolean("installed")
+	res, err = rep.ReplyParameters().BoolValue("installed")
 	s().NoError(err)
 	s().True(res)
 }
@@ -155,19 +155,19 @@ func (test *TestDepHandlerSuite) Test_11_Uninstall() {
 	// The binary must be installed to uninstall
 	req := message.Request{
 		Command:    DepInstalled,
-		Parameters: key_value.Empty().Set("url", test.url),
+		Parameters: key_value.New().Set("url", test.url),
 	}
 	rep, err := test.client.Request(&req)
 	s().NoError(err)
 	s().True(rep.IsOK())
-	res, err := rep.Parameters.GetBoolean("installed")
+	res, err := rep.ReplyParameters().BoolValue("installed")
 	s().NoError(err)
 	s().True(res)
 
 	// Uninstall
 	uninstallReq := message.Request{
 		Command:    UninstallDep,
-		Parameters: key_value.Empty().Set("src", src),
+		Parameters: key_value.New().Set("src", src),
 	}
 	rep, err = test.client.Request(&uninstallReq)
 	s().NoError(err)
@@ -180,7 +180,7 @@ func (test *TestDepHandlerSuite) Test_11_Uninstall() {
 	rep, err = test.client.Request(&req)
 	s().NoError(err)
 	s().True(rep.IsOK())
-	res, err = rep.Parameters.GetBoolean("installed")
+	res, err = rep.ReplyParameters().BoolValue("installed")
 	s().NoError(err)
 	s().False(res)
 }
@@ -203,7 +203,7 @@ func (test *TestDepHandlerSuite) Test_13_Start() {
 	// First, install the dependency
 	installReq := message.Request{
 		Command:    InstallDep,
-		Parameters: key_value.Empty().Set("src", src),
+		Parameters: key_value.New().Set("src", src),
 	}
 	rep, err := test.client.Request(&installReq)
 	s().NoError(err)
@@ -212,7 +212,7 @@ func (test *TestDepHandlerSuite) Test_13_Start() {
 	// Let's run it
 	runReq := message.Request{
 		Command: RunDep,
-		Parameters: key_value.Empty().
+		Parameters: key_value.New().
 			Set("parent", test.parent).
 			Set("url", src.Url).
 			Set("id", test.id),
@@ -227,20 +227,20 @@ func (test *TestDepHandlerSuite) Test_13_Start() {
 	// check that service is running
 	runningReq := message.Request{
 		Command: DepRunning,
-		Parameters: key_value.Empty().
+		Parameters: key_value.New().
 			Set("dep", depClient),
 	}
 	running, err := test.client.Request(&runningReq)
 	s().NoError(err)
 	s().True(running.IsOK())
-	result, err := running.Parameters.GetBoolean("running")
+	result, err := running.ReplyParameters().BoolValue("running")
 	s().NoError(err)
 	s().True(result)
 
 	// Close the service
 	closeReq := message.Request{
 		Command: CloseDep,
-		Parameters: key_value.Empty().
+		Parameters: key_value.New().
 			Set("dep", depClient),
 	}
 	running, err = test.client.Request(&closeReq)
@@ -254,7 +254,7 @@ func (test *TestDepHandlerSuite) Test_13_Start() {
 	running, err = test.client.Request(&runningReq)
 	s().NoError(err)
 	s().True(running.IsOK())
-	result, err = running.Parameters.GetBoolean("running")
+	result, err = running.ReplyParameters().BoolValue("running")
 	s().NoError(err)
 	s().False(result)
 
