@@ -4,8 +4,8 @@ go 1.19
 
 require (
 	github.com/ahmetson/client-lib v0.0.0-20230908063005-a2ac06918e8c
-	github.com/ahmetson/common-lib v0.0.0-20230825195825-e7b69549b9a1
 	github.com/ahmetson/config-lib v0.0.0-20230908094846-24b233553470
+	github.com/ahmetson/datatype-lib v0.0.0-20230927201942-0cc58292a7a3
 	github.com/ahmetson/handler-lib v0.0.0-20230908055435-ceab4155ee16
 	github.com/ahmetson/log-lib v0.0.0-20230908112453-62afbc558b65
 	github.com/ahmetson/os-lib v0.0.0-20230902092125-71ae94a18268

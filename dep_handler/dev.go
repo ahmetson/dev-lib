@@ -4,8 +4,8 @@ package dep_handler
 import (
 	"fmt"
 	clientConfig "github.com/ahmetson/client-lib/config"
-	"github.com/ahmetson/common-lib/data_type/key_value"
-	"github.com/ahmetson/common-lib/message"
+	"github.com/ahmetson/datatype-lib/data_type/key_value"
+	"github.com/ahmetson/datatype-lib/message"
 	"github.com/ahmetson/dev-lib/base/dep_manager"
 	"github.com/ahmetson/dev-lib/source"
 	"github.com/ahmetson/handler-lib/base"
