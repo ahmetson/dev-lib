@@ -62,24 +62,8 @@ func (test *TestProxyHandlerSuite) Test_11_HandlerConfig() {
 	s().True(inprocConfig.IsInproc())
 }
 
-// Test_12_ProxyHandler_SetService tests ProxyHandler.SetService method
-func (test *TestProxyHandlerSuite) Test_12_ProxyHandler_SetService() {
-	s := test.Suite.Require
-
-	handler := New()
-
-	// By default, the service parameters are empty
-	s().Empty(handler.serviceId)
-	s().Empty(handler.serviceUrl)
-
-	// After setting, the service parameters must be available
-	handler.SetService(test.id, test.url)
-	s().Equal(test.id, handler.serviceId)
-	s().Equal(test.url, handler.serviceUrl)
-}
-
-// Test_13_ProxyHandler_Route tests that routing is not available from out
-func (test *TestProxyHandlerSuite) Test_13_ProxyHandler_Route() {
+// Test_12_ProxyHandler_Route tests that routing is not available from out
+func (test *TestProxyHandlerSuite) Test_12_ProxyHandler_Route() {
 	s := test.Require
 
 	handler := New()
@@ -88,19 +72,14 @@ func (test *TestProxyHandlerSuite) Test_13_ProxyHandler_Route() {
 	s().Error(err)
 }
 
-// Test_11_Start tests preparation of the proxy
-func (test *TestProxyHandlerSuite) Test_11_Start() {
+// Test_13_Start tests preparation of the proxy
+func (test *TestProxyHandlerSuite) Test_13_Start() {
 	s := test.Suite.Require
 
 	handler := New()
 
-	// No service id and service url must fail
-	err := handler.Start()
-	s().Error(err)
-	handler.SetService(test.id, test.url)
-
 	// No configuration must fail
-	err = handler.Start()
+	err := handler.Start()
 	s().Error(err)
 	inprocConfig := HandlerConfig(test.id)
 	handler.SetConfig(inprocConfig)

@@ -17,8 +17,6 @@ const (
 
 type ProxyHandler struct {
 	*base.Handler
-	serviceId   string // the parent id
-	serviceUrl  string // the parent url for classification
 	proxyChains []*service.ProxyChain
 }
 
@@ -42,12 +40,6 @@ func New() *ProxyHandler {
 		Handler:     newHandler,
 		proxyChains: make([]*service.ProxyChain, 0),
 	}
-}
-
-// SetService sets the service parameters that this context belongs too
-func (proxyHandler *ProxyHandler) SetService(id string, url string) {
-	proxyHandler.serviceId = id
-	proxyHandler.serviceUrl = url
 }
 
 // The Route is over-written to be disabled.
@@ -93,14 +85,6 @@ func (proxyHandler *ProxyHandler) setRoutes() error {
 
 // Start starts the proxy handler as a new thread
 func (proxyHandler *ProxyHandler) Start() error {
-	if len(proxyHandler.serviceId) == 0 || len(proxyHandler.serviceUrl) == 0 {
-		return fmt.Errorf("no service id or service url. call ProxyHandler.SetService first")
-	}
-
-	if proxyHandler.Handler.Config() == nil {
-		return fmt.Errorf("handler configuration wasn't set. Call ProxyHandler.SetConfig first")
-	}
-
 	if len(proxyHandler.Handler.Routes) > 0 {
 		return fmt.Errorf("writing routes is not allowed")
 	}
