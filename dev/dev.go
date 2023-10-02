@@ -146,7 +146,7 @@ func (ctx *Context) SetService(id string, url string) {
 
 // Start the context.
 //
-// todo on error, close the threads of the config engine and dep manager if occurred an error.
+// Todo on error, close the threads of the config engine and dep manager if occurred an error.
 func (ctx *Context) Start() error {
 	if len(ctx.serviceId) == 0 || len(ctx.serviceUrl) == 0 {
 		return fmt.Errorf("service parameters are not set. call Context.SetService first")
@@ -208,7 +208,6 @@ func (ctx *Context) Start() error {
 	// Set the proxy client
 	//
 	proxyHandler := proxy_handler.New()
-	proxyHandler.SetService(ctx.serviceId, ctx.serviceUrl)
 	proxyHandlerConfig := proxy_handler.HandlerConfig(ctx.serviceId)
 	proxyHandler.SetConfig(proxyHandlerConfig)
 	err = proxyHandler.SetLogger(proxyLogger)
