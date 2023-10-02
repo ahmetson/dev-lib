@@ -6,6 +6,7 @@ import (
 	ctxConfig "github.com/ahmetson/dev-lib/base/config"
 	"github.com/ahmetson/dev-lib/dep_client"
 	"github.com/ahmetson/dev-lib/dev"
+	"github.com/ahmetson/dev-lib/proxy_client"
 	"github.com/ahmetson/os-lib/arg"
 )
 
@@ -14,10 +15,13 @@ type Interface interface {
 	Config() configClient.Interface
 	SetDepManager(dep_client.Interface) error
 	DepManager() dep_client.Interface
+	SetProxyClient(p proxy_client.Interface) error
+	ProxyClient() proxy_client.Interface
 	Type() ctxConfig.ContextType
 	Start() error
 	Close() error // Close the dep handler and config handler. The dep manager client is not closed
 	Running() bool
+	SetService(string, string) // SetService sets the service parameters
 }
 
 // A New orchestra. Optionally pass the type of the context.
