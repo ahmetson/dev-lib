@@ -1,22 +1,121 @@
-# Dev Lib and Context
-The *Dev* module exposes a developer context.
+# Dev module
+The *Dev* module defines the interface of the service context.
+It also includes the definition of the development context. 
+All contexts must have the interface defined in this module.
 
-> Running the tests sometimes leads to the failure of downloading source code or compiling it.
+> **Warning**
 > 
-> Running the tests again fixes it.
+> * Tests sometimes fail due to downloading source code.
+> * Tests fail due to firewall
 
-The contexts access to the *config* engine.
-And to the *dep* manager.
+## Context
 
-This is the developer context.
-The configuration engine in the developer context is
-working with local yaml files.
-The dep manager in the developer context is using the local
-directory.
+The **context** is the abstracted accessor to the hosting environment.
 
-> If you run `go test ./...` or `go test ./dep_manager`, then
-> then run them with the `-v` flag. Since the test works
-> with source code building.
+During the development, the service is hosted on the laptop.
+In production, a service maybe deployed to the cloud.
+On top of that, the service maybe containerized or stored as a binary.
+
+All hosting options have different settings and features.
+Especially when it comes to service discovery and configuration. 
+By abstracting the environment, the application is decoupled from the hosting.
+For each hosting provider, the context shall use the most optimized solutions.
+
+The distributed systems could be hosted on multiple servers.
+**The context abstracts the multiple machines**.
+
+Anything that service needs from the hosting environment comes from the context.
+Whether it's coming from the same server or remote server is not the worry of the service.
+
+> **todo**
+> 
+> [Martin Fowler](https://martinfowler.com/) said this.
+> For remote services the API must be coarsely grained.
+> 
+> Then, the AI must be able to create a coarsely grained API from smaller APIs.
+> In order to solve it: 
+> - the proxy could be set using inproc protocol.
+> - the proxy can have its own rule set.
+
+For now, the **context** has.
+* The configuration engine.
+* The dependency manager.
+
+> Not implemented yet, but assume the 
+> file operations, networking and logging are also included in the context.
+
+> **Todo**
+> 
+> Add a network feature that allocates an address for the service.
+
+## Configuration engine
+The configuration is not the part of the code.
+Thus, it comes from the hosting environment.
+
+The configurations maybe passed in a different ways.
+As a file in `json`, `ini` or `yaml` formats.
+By third-party provider. For example, with [etcd](https://etcd.io/). 
+The cloud providers also have their own configurations.
+
+**The task of the engine is to use the best solution with minimum setup in each environment.**
+
+*More information about a configuration engine is available on [config-lib](https://github.com/ahmetson/config-lib).*
+
+## Dependency manager
+The distributed systems must run all the services together.
+The services must be reliable and interconnected.
+
+There are two approaches for managing distributed systems.
+
+The first way is utilizing a separated tool.
+This tool is called an *orchestrator.*
+The popular orchestrators include *kubernetes*, *docker compose*.
+
+The other way is to make an application self-orchestrating.
+Each service is responsible for reliability and discovery without an orchestrator.
+In my career as a coder, I did not encounter anyone who is doing by this approach.
+Because, self-orchestration adds a design complexity at the module level.
+Also, the code gets more complex as it includes a business logic and orchestration.
+
+Using the orchestration tool, at the coding stage, a developer could focus on the business logic.
+Without worrying about orchestrating each part.
+However, the overall architecture is complex and requires more hardware resources.
+It also adds a centralization which creates a single point of failure.
+Self-orchestration has more benefits that over-comes the orchestration tools.
+It reduces the parts that service depends on. 
+Finally, it makes the code-testable for inter-connection which is the hard task, actually.
+
+SDS is the only framework that chose the second approach.
+By moving the orchestration part to the framework, the programmer doesn't have to write the tedious part.
+
+### Services relationships
+
+To write the multithreading applications, there are programming languages with concurrency.
+The best example is [Erlang](https://www.erlang.org/).
+In this approach, the application could be imagined as a tree of the processes.
+A main thread spawns the child threads, sets up a message bus.
+If the parent process dies, then all child processes die along with it.
+If the child process dies, then the parent may respawn it again.
+
+SDS framework works in the same way.
+There is a primary service with the application logic. 
+Then, there are additional services that do a side work.
+The primary service is spawning additional services.
+
+For example, the primary service could be an API.
+While the additional service could be a database driver.
+
+In a more complex application, there are multiple layers of the services.
+The additional services may depend on other services as well.
+
+In the example above, the database driver may depend on the authentication service.
+
+In the SDS framework, a service manages the dependencies that have direct messaging with it.
+If the dependency has an own set of dependencies, then it's none of primary service businesses.
+
+Again, refer to the [config-lib](https://github.com/ahmetson/config-lib)
+
+---
 
 # Dev Context
 Which means it's in the current machine.
