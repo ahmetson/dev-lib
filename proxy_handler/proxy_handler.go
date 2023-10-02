@@ -69,14 +69,6 @@ func (proxyHandler *ProxyHandler) onSetProxyChain(req message.RequestInterface) 
 	}
 
 	// Feel the missing urls
-	if proxyChain.Destination == nil {
-		return req.Fail("the 'Destination' and 'Proxies' fields of 'proxy_chain' are required")
-	}
-
-	if len(proxyChain.Destination.Urls) == 0 {
-		proxyChain.Destination.Urls = []string{proxyHandler.serviceUrl}
-	}
-
 	if proxyChain.Sources == nil {
 		proxyChain.Sources = []string{}
 	}
