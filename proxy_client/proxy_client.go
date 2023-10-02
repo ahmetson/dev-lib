@@ -13,7 +13,8 @@ import (
 )
 
 type Interface interface {
-	Set(chain *service.ProxyChain) error
+	Set(chain *service.ProxyChain) error                            // Set sets a new proxy chain in the configuration. Over-write for a duplicate rule.
+	ProxyChainsByRuleUrl(url string) ([]*service.ProxyChain, error) // Returns list of proxies by url in the destination.
 }
 
 type Client struct {
@@ -52,4 +53,34 @@ func (c *Client) Set(proxyChain *service.ProxyChain) error {
 	}
 
 	return nil
+}
+
+// ProxyChainsByRuleUrl returns the proxy chains by the destination's url field.
+func (c *Client) ProxyChainsByRuleUrl(url string) ([]*service.ProxyChain, error) {
+	req := &message.Request{
+		Command:    proxy_handler.SetProxyChain,
+		Parameters: key_value.New().Set("url", url),
+	}
+	reply, err := c.Request(req)
+	if err != nil {
+		return nil, fmt.Errorf("c.Request: %w", err)
+	}
+	if !reply.IsOK() {
+		return nil, fmt.Errorf("reply error message: %s", reply.ErrorMessage())
+	}
+
+	kvList, err := reply.ReplyParameters().NestedListValue("proxy_chains")
+	if err != nil {
+		return nil, fmt.Errorf("reply.ReplyParameters().NestedKeyValueList('proxy_chains'): %w", err)
+	}
+
+	proxyChains := make([]*service.ProxyChain, len(kvList))
+	for i, kv := range kvList {
+		err = kv.Interface(proxyChains[i])
+		if err != nil {
+			return nil, fmt.Errorf("kv.Interface(proxyChains[%d]): %w", i, err)
+		}
+	}
+
+	return proxyChains, nil
 }
