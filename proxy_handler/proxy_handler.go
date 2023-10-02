@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	Category = "proxy_handler" // handler category
+	Category      = "proxy_handler"   // handler category
+	SetProxyChain = "set-proxy-chain" // route command that sets a new proxy chain
 )
 
 type ProxyHandler struct {
@@ -90,6 +91,14 @@ func (proxyHandler *ProxyHandler) onSetProxyChain(req message.RequestInterface) 
 	return req.Ok(key_value.New())
 }
 
+func (proxyHandler *ProxyHandler) setRoutes() error {
+	if err := proxyHandler.Handler.Route(SetProxyChain, proxyHandler.onSetProxyChain); err != nil {
+		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", SetProxyChain, err)
+	}
+
+	return nil
+}
+
 // Start starts the proxy handler as a new thread
 func (proxyHandler *ProxyHandler) Start() error {
 	if len(proxyHandler.serviceId) == 0 || len(proxyHandler.serviceUrl) == 0 {
@@ -104,8 +113,9 @@ func (proxyHandler *ProxyHandler) Start() error {
 		return fmt.Errorf("writing routes is not allowed")
 	}
 
-	// todo
-	// add the routes to do operation on the proxy handler
+	if err := proxyHandler.setRoutes(); err != nil {
+		return fmt.Errorf("proxyHandler.setRoutes: %w", err)
+	}
 
 	if err := proxyHandler.Handler.Start(); err != nil {
 		return fmt.Errorf("proxyHandler.Handler.Start: %w", err)
