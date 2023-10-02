@@ -20,7 +20,6 @@ type Interface interface {
 
 type Client struct {
 	*client.Socket
-	proxyChains []*service.ProxyChain // list of proxy chains to add on the start
 }
 
 // The New returns a proxy client for the serviceId.
@@ -35,7 +34,7 @@ func New(serviceId string) (*Client, error) {
 		return nil, fmt.Errorf("client.New: %w", err)
 	}
 
-	return &Client{socket, make([]*service.ProxyChain, 0)}, nil
+	return &Client{socket}, nil
 }
 
 // Set sends the proxyChain to the proxy handler
