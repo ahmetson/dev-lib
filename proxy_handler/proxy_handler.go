@@ -16,6 +16,7 @@ const (
 	SetProxyChain        = "set-proxy-chain"          // route command that sets a new proxy chain
 	ProxyChainsByRuleUrl = "proxy-chains-by-rule-url" // route command that returns list of proxy chains by url in the rule
 	SetUnits             = "set-units"                // route command that sets the proxy units
+	ProxyChainsByLastId  = "proxy-chains-by-last-id"  // route command that returns list of proxy chains by the id of the last proxy
 )
 
 type ProxyHandler struct {
@@ -149,6 +150,30 @@ func (proxyHandler *ProxyHandler) onSetUnits(req message.RequestInterface) messa
 	return req.Ok(key_value.New())
 }
 
+// onProxyChainsByLastId returns list of proxy chains where the proxy id is in the proxies list
+func (proxyHandler *ProxyHandler) onProxyChainsByLastId(req message.RequestInterface) message.ReplyInterface {
+	id, err := req.RouteParameters().StringValue("id")
+	if err != nil {
+		return req.Fail(fmt.Sprintf("req.RouteParameters().StringValue('id'): %v", err))
+	}
+
+	proxyChains := make([]*service.ProxyChain, 0, len(proxyHandler.proxyChains))
+	for _, proxyChain := range proxyHandler.proxyChains {
+		lastProxy := len(proxyChain.Proxies) - 1
+		if lastProxy == -1 {
+			continue
+		}
+
+		if proxyChain.Proxies[lastProxy].Id == id {
+			proxyChains = append(proxyChains, proxyChain)
+		}
+	}
+
+	params := key_value.New().Set("proxy_chains", proxyChains)
+
+	return req.Ok(params)
+}
+
 func (proxyHandler *ProxyHandler) setRoutes() error {
 	if err := proxyHandler.Handler.Route(SetProxyChain, proxyHandler.onSetProxyChain); err != nil {
 		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", SetProxyChain, err)
@@ -158,6 +183,9 @@ func (proxyHandler *ProxyHandler) setRoutes() error {
 	}
 	if err := proxyHandler.Handler.Route(SetUnits, proxyHandler.onSetUnits); err != nil {
 		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", SetUnits, err)
+	}
+	if err := proxyHandler.Handler.Route(ProxyChainsByLastId, proxyHandler.onSetUnits); err != nil {
+		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", ProxyChainsByLastId, err)
 	}
 
 	return nil

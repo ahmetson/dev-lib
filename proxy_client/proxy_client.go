@@ -16,6 +16,7 @@ type Interface interface {
 	Set(chain *service.ProxyChain) error                            // Set sets a new proxy chain in the configuration. Over-write for a duplicate rule.
 	ProxyChainsByRuleUrl(url string) ([]*service.ProxyChain, error) // Returns list of proxy chains by url in the destination.
 	SetUnits(*service.Rule, []*service.Unit) error                  // Sets the destination units for each rule
+	ProxyChainsByLastId(id string) ([]*service.ProxyChain, error)   // Returns list of proxy chains by the last proxy id
 }
 
 type Client struct {
@@ -103,4 +104,34 @@ func (c *Client) SetUnits(rule *service.Rule, units []*service.Unit) error {
 	}
 
 	return nil
+}
+
+// ProxyChainsByLastId returns the proxy chains by the last proxy id.
+func (c *Client) ProxyChainsByLastId(id string) ([]*service.ProxyChain, error) {
+	req := &message.Request{
+		Command:    proxy_handler.ProxyChainsByLastId,
+		Parameters: key_value.New().Set("id", id),
+	}
+	reply, err := c.Request(req)
+	if err != nil {
+		return nil, fmt.Errorf("c.Request: %w", err)
+	}
+	if !reply.IsOK() {
+		return nil, fmt.Errorf("reply error message: %s", reply.ErrorMessage())
+	}
+
+	kvList, err := reply.ReplyParameters().NestedListValue("proxy_chains")
+	if err != nil {
+		return nil, fmt.Errorf("reply.ReplyParameters().NestedKeyValueList('proxy_chains'): %w", err)
+	}
+
+	proxyChains := make([]*service.ProxyChain, len(kvList))
+	for i, kv := range kvList {
+		err = kv.Interface(proxyChains[i])
+		if err != nil {
+			return nil, fmt.Errorf("kv.Interface(proxyChains[%d]): %w", i, err)
+		}
+	}
+
+	return proxyChains, nil
 }
