@@ -15,11 +15,13 @@ const (
 	Category             = "proxy_handler"            // handler category
 	SetProxyChain        = "set-proxy-chain"          // route command that sets a new proxy chain
 	ProxyChainsByRuleUrl = "proxy-chains-by-rule-url" // route command that returns list of proxy chains by url in the rule
+	SetUnits             = "set-units"                // route command that sets the proxy units
 )
 
 type ProxyHandler struct {
 	*base.Handler
 	proxyChains []*service.ProxyChain
+	proxyUnits  map[*service.Rule][]*service.Unit
 }
 
 // Id of the proxy handler based on the service id
@@ -41,7 +43,12 @@ func New() *ProxyHandler {
 	return &ProxyHandler{
 		Handler:     newHandler,
 		proxyChains: make([]*service.ProxyChain, 0),
+		proxyUnits:  make(map[*service.Rule][]*service.Unit, 0),
 	}
+}
+
+func (proxyHandler *ProxyHandler) setUnits(rule *service.Rule, units []*service.Unit) {
+	proxyHandler.proxyUnits[rule] = units
 }
 
 // The Route is over-written to be disabled.
@@ -104,12 +111,53 @@ func (proxyHandler *ProxyHandler) onProxyChainsByRuleUrl(req message.RequestInte
 	return req.Ok(params)
 }
 
+// onSetUnits is a handler function that sets the list of all proxy units for each rule.
+func (proxyHandler *ProxyHandler) onSetUnits(req message.RequestInterface) message.ReplyInterface {
+	raw, err := req.RouteParameters().NestedValue("rule")
+	if err != nil {
+		return req.Fail(fmt.Sprintf("req.RouteParameters().NestedValue('proxy_chain'): %v", err))
+	}
+
+	var rule service.Rule
+	err = raw.Interface(&rule)
+	if err != nil {
+		return req.Fail(fmt.Sprintf("key_value.KeyValue('proxy_chain').Interface(): %v", err))
+	}
+
+	if !rule.IsValid() {
+		return req.Fail("the 'rule' parameter is not valid")
+	}
+
+	rawUnits, err := req.RouteParameters().NestedListValue("units")
+	if err != nil {
+		return req.Fail(fmt.Sprintf("req.RouteParameters().NestedListValue('units'): %v", err))
+	}
+
+	units := make([]*service.Unit, len(rawUnits))
+	for i, rawUnit := range rawUnits {
+		var unit service.Unit
+		err = rawUnit.Interface(&unit)
+		if err != nil {
+			return req.Fail(fmt.Sprintf("rawUnits[%d].Interface: %v", i, err))
+		}
+
+		units[i] = &unit
+	}
+
+	proxyHandler.setUnits(&rule, units)
+
+	return req.Ok(key_value.New())
+}
+
 func (proxyHandler *ProxyHandler) setRoutes() error {
 	if err := proxyHandler.Handler.Route(SetProxyChain, proxyHandler.onSetProxyChain); err != nil {
 		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", SetProxyChain, err)
 	}
 	if err := proxyHandler.Handler.Route(ProxyChainsByRuleUrl, proxyHandler.onProxyChainsByRuleUrl); err != nil {
 		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", ProxyChainsByRuleUrl, err)
+	}
+	if err := proxyHandler.Handler.Route(SetUnits, proxyHandler.onSetUnits); err != nil {
+		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", SetUnits, err)
 	}
 
 	return nil

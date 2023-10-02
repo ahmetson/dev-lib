@@ -14,7 +14,8 @@ import (
 
 type Interface interface {
 	Set(chain *service.ProxyChain) error                            // Set sets a new proxy chain in the configuration. Over-write for a duplicate rule.
-	ProxyChainsByRuleUrl(url string) ([]*service.ProxyChain, error) // Returns list of proxies by url in the destination.
+	ProxyChainsByRuleUrl(url string) ([]*service.ProxyChain, error) // Returns list of proxy chains by url in the destination.
+	SetUnits(*service.Rule, []*service.Unit) error                  // Sets the destination units for each rule
 }
 
 type Client struct {
@@ -83,4 +84,24 @@ func (c *Client) ProxyChainsByRuleUrl(url string) ([]*service.ProxyChain, error)
 	}
 
 	return proxyChains, nil
+}
+
+// SetUnits sends the rule and units for this rule to the proxy handler
+func (c *Client) SetUnits(rule *service.Rule, units []*service.Unit) error {
+	params := key_value.New().
+		Set("rule", rule).
+		Set("units", units)
+	req := &message.Request{
+		Command:    proxy_handler.SetUnits,
+		Parameters: params,
+	}
+	reply, err := c.Request(req)
+	if err != nil {
+		return fmt.Errorf("c.Request: %w", err)
+	}
+	if !reply.IsOK() {
+		return fmt.Errorf("reply error message: %s", reply.ErrorMessage())
+	}
+
+	return nil
 }
