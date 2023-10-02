@@ -18,7 +18,9 @@ type Interface interface {
 	SetProxyClient(p proxy_client.Interface) error
 	ProxyClient() proxy_client.Interface
 	Type() ctxConfig.ContextType
-	Start() error
+	StartConfig() error
+	StartDepManager() error
+	StartProxyHandler() error
 	Close() error // Close the dep handler and config handler. The dep manager client is not closed
 	Running() bool
 	SetService(string, string) // SetService sets the service parameters

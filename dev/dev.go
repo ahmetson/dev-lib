@@ -25,7 +25,7 @@ type Context struct {
 	proxyClient         proxy_client.Interface
 	proxyHandler        *proxy_handler.ProxyHandler
 	proxyHandlerManager manager_client.Interface
-	running             bool
+	engineStarted       bool // is the config engine started or not?
 	serviceId           string
 	serviceUrl          string
 }
@@ -53,7 +53,7 @@ func New() (*Context, error) {
 }
 
 func (ctx *Context) Running() bool {
-	return ctx.running
+	return ctx.engineStarted && ctx.depHandlerManager != nil && ctx.proxyHandlerManager != nil
 }
 
 // SetConfig sets the config engine of the given type.
@@ -108,32 +108,28 @@ func (ctx *Context) Type() baseConfig.ContextType {
 
 // Close the dep handler and config handler. The dep manager client is not closed
 func (ctx *Context) Close() error {
-	if !ctx.running {
-		return nil
-	}
-	if ctx.depHandler == nil {
-		return nil
-	}
-
-	if err := ctx.Config().Close(); err != nil {
-		return fmt.Errorf("ctx.Config.Close: %w", err)
+	if ctx.engineStarted {
+		if err := ctx.Config().Close(); err != nil {
+			return fmt.Errorf("ctx.Config.Close: %w", err)
+		}
+		ctx.engineStarted = false
 	}
 
-	if err := ctx.depHandlerManager.Close(); err != nil {
-		return fmt.Errorf("ctx.depHandlerManager.Close: %w", err)
+	if ctx.depHandlerManager != nil {
+		if err := ctx.depHandlerManager.Close(); err != nil {
+			return fmt.Errorf("ctx.depHandlerManager.Close: %w", err)
+		}
+		ctx.depHandlerManager = nil
 	}
 
 	if ctx.proxyHandlerManager != nil {
-		if err := ctx.proxyHandlerManager.Close(); err != nil {
-			return fmt.Errorf("ctx.proxyHandlerManager.Close: %w", err)
+		if ctx.proxyHandlerManager != nil {
+			if err := ctx.proxyHandlerManager.Close(); err != nil {
+				return fmt.Errorf("ctx.proxyHandlerManager.Close: %w", err)
+			}
 		}
+		ctx.proxyHandlerManager = nil
 	}
-
-	ctx.depHandler = nil
-	ctx.depHandlerManager = nil
-	ctx.proxyHandler = nil
-	ctx.proxyHandlerManager = nil
-	ctx.running = false
 
 	return nil
 }
@@ -144,21 +140,12 @@ func (ctx *Context) SetService(id string, url string) {
 	ctx.serviceUrl = url
 }
 
-// Start the context.
-//
-// Todo on error, close the threads of the config engine and dep manager if occurred an error.
-func (ctx *Context) Start() error {
-	if len(ctx.serviceId) == 0 || len(ctx.serviceUrl) == 0 {
-		return fmt.Errorf("service parameters are not set. call Context.SetService first")
-	}
-	proxyLogger, err := log.New("proxy-handler", true)
-	if err != nil {
-		return fmt.Errorf("log.New('proxy-handler'): %w", err)
+// StartConfig starts the config engine.
+func (ctx *Context) StartConfig() error {
+	if ctx.engineStarted {
+		return fmt.Errorf("config engine already started")
 	}
 
-	//
-	// Start the config engine
-	//
 	engine, err := configHandler.New()
 	if err != nil {
 		return fmt.Errorf("configHandler.New: %w", err)
@@ -168,6 +155,19 @@ func (ctx *Context) Start() error {
 		return fmt.Errorf("configHandler.Start: %w", err)
 	}
 
+	ctx.engineStarted = true
+
+	return nil
+}
+
+// StartDepManager starts the dependency manager
+func (ctx *Context) StartDepManager() error {
+	if !ctx.engineStarted {
+		return fmt.Errorf("config engine not started. call StartConfig first")
+	}
+	if ctx.depHandlerManager != nil {
+		return fmt.Errorf("dep manager already started")
+	}
 	// Set the development context parameters
 	if err := devConfig.SetDevDefaults(ctx.configClient); err != nil {
 		return fmt.Errorf("config.SetDevDefaults: %w", err)
@@ -203,10 +203,25 @@ func (ctx *Context) Start() error {
 		return fmt.Errorf("manager_client.New('dep_handler'): %w", err)
 	}
 
-	//
-	// Start the proxy manager
-	// Set the proxy client
-	//
+	return nil
+}
+
+// StartProxyHandler starts the proxy handler
+func (ctx *Context) StartProxyHandler() error {
+	if len(ctx.serviceId) == 0 || len(ctx.serviceUrl) == 0 {
+		return fmt.Errorf("service parameters are not set. call Context.SetService first")
+	}
+	if !ctx.engineStarted {
+		return fmt.Errorf("config engine not started. call StartConfig first")
+	}
+	if ctx.proxyHandlerManager != nil {
+		return fmt.Errorf("proxy handler already started")
+	}
+	proxyLogger, err := log.New("proxy-handler", true)
+	if err != nil {
+		return fmt.Errorf("log.New('proxy-handler'): %w", err)
+	}
+
 	proxyHandler := proxy_handler.New()
 	proxyHandlerConfig := proxy_handler.HandlerConfig(ctx.serviceId)
 	proxyHandler.SetConfig(proxyHandlerConfig)
@@ -232,8 +247,6 @@ func (ctx *Context) Start() error {
 	if err != nil {
 		return fmt.Errorf("ctx.SetProxyClient: %w", err)
 	}
-
-	ctx.running = true
 
 	return nil
 }
