@@ -58,7 +58,7 @@ func (c *Client) Set(proxyChain *service.ProxyChain) error {
 // ProxyChainsByRuleUrl returns the proxy chains by the destination's url field.
 func (c *Client) ProxyChainsByRuleUrl(url string) ([]*service.ProxyChain, error) {
 	req := &message.Request{
-		Command:    proxy_handler.SetProxyChain,
+		Command:    proxy_handler.ProxyChainsByRuleUrl,
 		Parameters: key_value.New().Set("url", url),
 	}
 	reply, err := c.Request(req)
