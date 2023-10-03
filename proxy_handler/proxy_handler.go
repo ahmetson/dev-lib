@@ -337,6 +337,9 @@ func (proxyHandler *ProxyHandler) setRoutes() error {
 	if err := proxyHandler.Handler.Route(LastProxies, proxyHandler.onLastProxies); err != nil {
 		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", LastProxies, err)
 	}
+	if err := proxyHandler.Handler.Route(StartLastProxies, proxyHandler.onStartLastProxies); err != nil {
+		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", StartLastProxies, err)
+	}
 
 	return nil
 }
