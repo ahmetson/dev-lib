@@ -236,6 +236,81 @@ func (proxyHandler *ProxyHandler) onLastProxies(req message.RequestInterface) me
 	return req.Ok(params)
 }
 
+// onStartLastProxies starts the proxies
+func (proxyHandler *ProxyHandler) onStartLastProxies(req message.RequestInterface) message.ReplyInterface {
+	if len(proxyHandler.serviceId) == 0 {
+		return req.Fail("serviceId not set. call ProxyHandler.SetServiceId first")
+	}
+	if proxyHandler.engine == nil {
+		return req.Fail("config engine is not set")
+	}
+	if proxyHandler.depClient == nil {
+		return req.Fail("dependency manager is not set")
+	}
+	depManager := proxyHandler.depClient
+
+	proxies := service.LastProxies(proxyHandler.proxyChains)
+
+	if len(proxies) == 0 {
+		return req.Ok(key_value.New())
+	}
+
+	serviceConfig, err := proxyHandler.engine.Service(proxyHandler.serviceId)
+	if err != nil {
+		return req.Fail(fmt.Sprintf("engine.Service('%s'): %v", proxyHandler.serviceId, err))
+	}
+
+	// todo make sure to run in concurrency
+	for i := range proxies {
+		proxy := proxies[i]
+
+		if serviceConfig.SourceExist(proxy.Id) {
+			proxySource := serviceConfig.SourceById(proxy.Id)
+			if proxySource == nil || proxySource.Manager == nil {
+				continue
+			}
+
+			running, err := depManager.Running(proxySource.Manager)
+			if err != nil {
+				return req.Fail(fmt.Sprintf("depManager.Running('%s'): %v", proxy.Id, err))
+			}
+
+			// todo make sure to update the client parameters with the rule units
+			if running {
+				continue
+			}
+
+			if err := depManager.Run(proxy.Url, proxy.Id, serviceConfig.Manager); err != nil {
+				return req.Fail(fmt.Sprintf("depManager.Run('%s', '%s'): %v", proxy.Url, proxy.Id, err))
+			}
+
+			continue
+		}
+
+		installed, err := depManager.Installed(proxy.Url)
+		if err != nil {
+			return req.Fail(fmt.Sprintf("depManager.Installed('%s'): %v", proxy.Url, err))
+		}
+
+		if !installed {
+			proxySrc, err := source.New(proxy.Url)
+			if err != nil {
+				return req.Fail(fmt.Sprintf("source.New('%s'): %v", proxy.Url, err))
+			}
+			err = depManager.Install(proxySrc)
+			if err != nil {
+				return req.Fail(fmt.Sprintf("depManager.Install: %v", err))
+			}
+		}
+
+		if err := depManager.Run(proxy.Url, proxy.Id, serviceConfig.Manager); err != nil {
+			return req.Fail(fmt.Sprintf("depManager.Run('%s', '%s'): %v", proxy.Url, proxy.Id, err))
+		}
+	}
+
+	return req.Ok(key_value.New())
+}
+
 func (proxyHandler *ProxyHandler) setRoutes() error {
 	if err := proxyHandler.Handler.Route(SetProxyChain, proxyHandler.onSetProxyChain); err != nil {
 		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", SetProxyChain, err)
@@ -259,6 +334,58 @@ func (proxyHandler *ProxyHandler) setRoutes() error {
 	return nil
 }
 
+func (proxyHandler *ProxyHandler) onClose(request message.RequestInterface) message.ReplyInterface {
+	if err := proxyHandler.closeProxies(); err != nil {
+		return request.Fail(fmt.Sprintf("proxyHandler.closeProxies: %v", err))
+	}
+
+	return proxyHandler.Handler.Manager.SetClose(request)
+}
+
+// closeProxies will close all proxies that have generated configuration
+func (proxyHandler *ProxyHandler) closeProxies() error {
+	if len(proxyHandler.serviceId) == 0 {
+		return fmt.Errorf("serviceId not set. call ProxyHandler.SetServiceId first")
+	}
+	if proxyHandler.engine == nil {
+		return nil
+	}
+	if proxyHandler.depClient == nil {
+		return nil
+	}
+
+	serviceConfig, err := proxyHandler.engine.Service(proxyHandler.serviceId)
+	if err != nil {
+		return fmt.Errorf("engine.Service('%s'): %w", proxyHandler.serviceId, err)
+	}
+
+	if len(serviceConfig.Sources) == 0 {
+		return nil
+	}
+	depManager := proxyHandler.depClient
+
+	for i := range serviceConfig.Sources {
+		sourceRule := serviceConfig.Sources[i]
+
+		if len(sourceRule.Proxies) == 0 {
+			continue
+		}
+		for j := range sourceRule.Proxies {
+			sourceProxy := sourceRule.Proxies[j]
+
+			if sourceProxy.Manager == nil {
+				continue
+			}
+
+			if err := depManager.CloseDep(sourceProxy.Manager); err != nil {
+				return fmt.Errorf("depManager.CloseDep('%s'): %w", sourceProxy.Id, err)
+			}
+		}
+	}
+
+	return nil
+}
+
 // Start starts the proxy handler as a new thread
 func (proxyHandler *ProxyHandler) Start() error {
 	if len(proxyHandler.Handler.Routes) > 0 {
@@ -267,6 +394,12 @@ func (proxyHandler *ProxyHandler) Start() error {
 
 	if err := proxyHandler.setRoutes(); err != nil {
 		return fmt.Errorf("proxyHandler.setRoutes: %w", err)
+	}
+
+	if proxyHandler.Handler.Manager != nil {
+		if err := proxyHandler.Handler.Manager.Route(handlerConfig.HandlerClose, proxyHandler.onClose); err != nil {
+			return fmt.Errorf("manager.Route('%s'): %w", handlerConfig.HandlerClose, err)
+		}
 	}
 
 	if err := proxyHandler.Handler.Start(); err != nil {
