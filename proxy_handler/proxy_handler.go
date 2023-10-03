@@ -28,6 +28,7 @@ const (
 	ProxyChainsByLastId  = "proxy-chains-by-last-id"  // route command that returns list of proxy chains by the id of the last proxy
 	Units                = "units"                    // route command that returns a list of destination units for a rule
 	LastProxies          = "last-proxies"             // route command that returns a list of last proxies in the proxy chains.
+	StartLastProxies     = "start-last-proxies"       // route command that starts all proxies
 )
 
 type ProxyHandler struct {

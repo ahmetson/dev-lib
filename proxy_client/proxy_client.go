@@ -203,3 +203,20 @@ func (c *Client) LastProxies() ([]*service.Proxy, error) {
 
 	return proxies, nil
 }
+
+// The StartLastProxies method starts all the proxies
+func (c *Client) StartLastProxies() error {
+	req := &message.Request{
+		Command:    proxy_handler.StartLastProxies,
+		Parameters: key_value.New(),
+	}
+	reply, err := c.Request(req)
+	if err != nil {
+		return fmt.Errorf("c.Request: %w", err)
+	}
+	if !reply.IsOK() {
+		return fmt.Errorf("reply error message: %s", reply.ErrorMessage())
+	}
+
+	return nil
+}
