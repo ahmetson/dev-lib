@@ -3,9 +3,12 @@ package proxy_handler
 
 import (
 	"fmt"
+	configClient "github.com/ahmetson/config-lib/client"
 	"github.com/ahmetson/config-lib/service"
 	"github.com/ahmetson/datatype-lib/data_type/key_value"
 	"github.com/ahmetson/datatype-lib/message"
+	"github.com/ahmetson/dev-lib/dep_client"
+	"github.com/ahmetson/dev-lib/source"
 	"github.com/ahmetson/handler-lib/base"
 	handlerConfig "github.com/ahmetson/handler-lib/config"
 	"slices"
@@ -25,6 +28,8 @@ type ProxyHandler struct {
 	*base.Handler
 	proxyChains []*service.ProxyChain
 	proxyUnits  map[*service.Rule][]*service.Unit
+	depClient   *dep_client.Client
+	engine      *configClient.Client
 	serviceId   string
 }
 
@@ -42,12 +47,14 @@ func HandlerConfig(serviceId string) *handlerConfig.Handler {
 }
 
 // New returns a proxy handler
-func New() *ProxyHandler {
+func New(engine *configClient.Client, depClient *dep_client.Client) *ProxyHandler {
 	newHandler := base.New()
 	return &ProxyHandler{
 		Handler:     newHandler,
 		proxyChains: make([]*service.ProxyChain, 0),
 		proxyUnits:  make(map[*service.Rule][]*service.Unit, 0),
+		engine:      engine,
+		depClient:   depClient,
 	}
 }
 
@@ -241,6 +248,12 @@ func (proxyHandler *ProxyHandler) setRoutes() error {
 	}
 	if err := proxyHandler.Handler.Route(ProxyChainsByLastId, proxyHandler.onSetUnits); err != nil {
 		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", ProxyChainsByLastId, err)
+	}
+	if err := proxyHandler.Handler.Route(Units, proxyHandler.onUnits); err != nil {
+		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", Units, err)
+	}
+	if err := proxyHandler.Handler.Route(LastProxies, proxyHandler.onLastProxies); err != nil {
+		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", LastProxies, err)
 	}
 
 	return nil

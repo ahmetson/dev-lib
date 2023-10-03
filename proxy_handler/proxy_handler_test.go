@@ -76,7 +76,7 @@ func (test *TestProxyHandlerSuite) Test_11_HandlerConfig() {
 func (test *TestProxyHandlerSuite) Test_12_ProxyHandler_Route() {
 	s := test.Require
 
-	handler := New()
+	handler := New(nil, nil)
 
 	err := handler.Route("cmd_1", test.handleFunc)
 	s().Error(err)
@@ -86,13 +86,14 @@ func (test *TestProxyHandlerSuite) Test_12_ProxyHandler_Route() {
 func (test *TestProxyHandlerSuite) Test_13_ProxyHandler_Start() {
 	s := test.Suite.Require
 
-	handler := New()
+	handler := New(nil, nil)
 
 	// No configuration must fail
 	err := handler.Start()
 	s().Error(err)
 	inprocConfig := HandlerConfig(test.id)
 	handler.SetConfig(inprocConfig)
+	handler.SetServiceId(test.id)
 
 	// No logger must fail
 	err = handler.Start()
@@ -133,7 +134,7 @@ func (test *TestProxyHandlerSuite) Test_14_ProxyHandler_onSetProxyChain() {
 		Parameters: key_value.New(),
 	}
 
-	handler := New()
+	handler := New(nil, nil)
 
 	// the proxy chain doesn't exist in the request parameters
 	reply := handler.onSetProxyChain(req)
@@ -180,7 +181,7 @@ func (test *TestProxyHandlerSuite) Test_15_ProxyHandler_onProxyChainsByRuleUrl()
 		Parameters: key_value.New(),
 	}
 
-	handler := New()
+	handler := New(nil, nil)
 	test.proxyChain.Destination = service.NewServiceDestination(test.url)
 	test.proxyChain.Proxies = []*service.Proxy{test.proxy1, test.proxy2}
 	handler.proxyChains = append(handler.proxyChains, test.proxyChain)
