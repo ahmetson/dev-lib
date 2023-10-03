@@ -18,6 +18,7 @@ type Interface interface {
 	SetUnits(*service.Rule, []*service.Unit) error                  // Sets the destination units for each rule
 	ProxyChainsByLastId(id string) ([]*service.ProxyChain, error)   // Returns list of proxy chains by the last proxy id
 	Units(*service.Rule) ([]*service.Unit, error)                   // Returns list of destination units by a rule
+	LastProxies() ([]*service.Proxy, error)                         // Returns list of proxies
 }
 
 type Client struct {
@@ -168,4 +169,37 @@ func (c *Client) Units(rule *service.Rule) ([]*service.Unit, error) {
 	}
 
 	return units, nil
+}
+
+// The LastProxies method returns the last proxies
+func (c *Client) LastProxies() ([]*service.Proxy, error) {
+	req := &message.Request{
+		Command:    proxy_handler.LastProxies,
+		Parameters: key_value.New(),
+	}
+	reply, err := c.Request(req)
+	if err != nil {
+		return nil, fmt.Errorf("c.Request: %w", err)
+	}
+	if !reply.IsOK() {
+		return nil, fmt.Errorf("reply error message: %s", reply.ErrorMessage())
+	}
+
+	rawProxies, err := reply.ReplyParameters().NestedListValue("proxies")
+	if err != nil {
+		return nil, fmt.Errorf("reply.ReplyParameters().NestedKeyValueList('proxy_chains'): %w", err)
+	}
+
+	proxies := make([]*service.Proxy, len(rawProxies))
+	for i, rawProxy := range rawProxies {
+		var proxy service.Proxy
+		err = rawProxy.Interface(&proxy)
+		if err != nil {
+			return nil, fmt.Errorf("rawProxies[%d].Interface: %w", i, err)
+		}
+
+		proxies[i] = &proxy
+	}
+
+	return proxies, nil
 }

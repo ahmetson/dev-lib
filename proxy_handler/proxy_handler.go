@@ -18,6 +18,7 @@ const (
 	SetUnits             = "set-units"                // route command that sets the proxy units
 	ProxyChainsByLastId  = "proxy-chains-by-last-id"  // route command that returns list of proxy chains by the id of the last proxy
 	Units                = "units"                    // route command that returns a list of destination units for a rule
+	LastProxies          = "last-proxies"             // route command that returns a list of last proxies in the proxy chains.
 )
 
 type ProxyHandler struct {
@@ -202,6 +203,16 @@ func (proxyHandler *ProxyHandler) onUnits(req message.RequestInterface) message.
 	}
 
 	params := key_value.New().Set("units", units)
+
+	return req.Ok(params)
+}
+
+// onLastProxies returns the list of the proxies.
+// The duplicate proxies are compacted
+func (proxyHandler *ProxyHandler) onLastProxies(req message.RequestInterface) message.ReplyInterface {
+	proxies := service.LastProxies(proxyHandler.proxyChains)
+
+	params := key_value.New().Set("proxies", proxies)
 
 	return req.Ok(params)
 }
