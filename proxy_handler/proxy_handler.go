@@ -17,6 +17,7 @@ const (
 	ProxyChainsByRuleUrl = "proxy-chains-by-rule-url" // route command that returns list of proxy chains by url in the rule
 	SetUnits             = "set-units"                // route command that sets the proxy units
 	ProxyChainsByLastId  = "proxy-chains-by-last-id"  // route command that returns list of proxy chains by the id of the last proxy
+	Units                = "units"                    // route command that returns a list of destination units for a rule
 )
 
 type ProxyHandler struct {
@@ -170,6 +171,37 @@ func (proxyHandler *ProxyHandler) onProxyChainsByLastId(req message.RequestInter
 	}
 
 	params := key_value.New().Set("proxy_chains", proxyChains)
+
+	return req.Ok(params)
+}
+
+// onUnits returns the list of units by a rule
+func (proxyHandler *ProxyHandler) onUnits(req message.RequestInterface) message.ReplyInterface {
+	raw, err := req.RouteParameters().NestedValue("rule")
+	if err != nil {
+		return req.Fail(fmt.Sprintf("req.RouteParameters().NestedValue('proxy_chain'): %v", err))
+	}
+
+	var rule service.Rule
+	err = raw.Interface(&rule)
+	if err != nil {
+		return req.Fail(fmt.Sprintf("key_value.KeyValue('proxy_chain').Interface(): %v", err))
+	}
+
+	if !rule.IsValid() {
+		return req.Fail("the 'rule' parameter is not valid")
+	}
+
+	units := make([]*service.Unit, 0)
+
+	for firstRule := range proxyHandler.proxyUnits {
+		if service.IsEqualRule(firstRule, &rule) {
+			units = proxyHandler.proxyUnits[firstRule]
+			break
+		}
+	}
+
+	params := key_value.New().Set("units", units)
 
 	return req.Ok(params)
 }
