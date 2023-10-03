@@ -25,6 +25,7 @@ type ProxyHandler struct {
 	*base.Handler
 	proxyChains []*service.ProxyChain
 	proxyUnits  map[*service.Rule][]*service.Unit
+	serviceId   string
 }
 
 // Id of the proxy handler based on the service id
@@ -48,6 +49,11 @@ func New() *ProxyHandler {
 		proxyChains: make([]*service.ProxyChain, 0),
 		proxyUnits:  make(map[*service.Rule][]*service.Unit, 0),
 	}
+}
+
+// SetServiceId notifies the proxy handler with the service where it's belonged too.
+func (proxyHandler *ProxyHandler) SetServiceId(id string) {
+	proxyHandler.serviceId = id
 }
 
 func (proxyHandler *ProxyHandler) setUnits(rule *service.Rule, units []*service.Unit) {
