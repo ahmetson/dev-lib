@@ -28,8 +28,8 @@ type ProxyHandler struct {
 	*base.Handler
 	proxyChains []*service.ProxyChain
 	proxyUnits  map[*service.Rule][]*service.Unit
-	depClient   *dep_client.Client
-	engine      *configClient.Client
+	depClient   dep_client.Interface
+	engine      configClient.Interface
 	serviceId   string
 }
 
@@ -47,7 +47,7 @@ func HandlerConfig(serviceId string) *handlerConfig.Handler {
 }
 
 // New returns a proxy handler
-func New(engine *configClient.Client, depClient *dep_client.Client) *ProxyHandler {
+func New(engine configClient.Interface, depClient dep_client.Interface) *ProxyHandler {
 	newHandler := base.New()
 	return &ProxyHandler{
 		Handler:     newHandler,
