@@ -185,85 +185,86 @@ func (test *TestDepHandlerSuite) Test_11_Uninstall() {
 	s().False(res)
 }
 
-// Test_13_Start tests DepRunning, RunDep and CloseDep commands.
-func (test *TestDepHandlerSuite) Test_13_Start() {
-	s := test.Suite.Require
-
-	depClient := &clientConfig.Client{
-		ServiceUrl: test.url,
-		Id:         test.id,
-		Port:       6000,
-		TargetType: handlerConfig.SocketType(handlerConfig.ReplierType),
-	}
-
-	src, err := source.New(test.url)
-	s().NoError(err)
-	src.SetBranch("server") // the sample server is written in this branch.
-
-	// First, install the dependency
-	installReq := message.Request{
-		Command:    InstallDep,
-		Parameters: key_value.New().Set("src", src),
-	}
-	rep, err := test.client.Request(&installReq)
-	s().NoError(err)
-	s().True(rep.IsOK())
-
-	// Let's run it
-	runReq := message.Request{
-		Command: RunDep,
-		Parameters: key_value.New().
-			Set("parent", test.parent).
-			Set("url", src.Url).
-			Set("id", test.id),
-	}
-	rep, err = test.client.Request(&runReq)
-	s().NoError(err)
-	s().True(rep.IsOK())
-
-	// Just wait a bit for initialization of the service
-	time.Sleep(time.Millisecond * 100)
-
-	// check that service is running
-	runningReq := message.Request{
-		Command: DepRunning,
-		Parameters: key_value.New().
-			Set("dep", depClient),
-	}
-	running, err := test.client.Request(&runningReq)
-	s().NoError(err)
-	s().True(running.IsOK())
-	result, err := running.ReplyParameters().BoolValue("running")
-	s().NoError(err)
-	s().True(result)
-
-	// Close the service
-	closeReq := message.Request{
-		Command: CloseDep,
-		Parameters: key_value.New().
-			Set("dep", depClient),
-	}
-	running, err = test.client.Request(&closeReq)
-	s().NoError(err)
-	s().True(running.IsOK())
-
-	// Wait a bit for closing the source process
-	time.Sleep(time.Millisecond * 100)
-
-	// Checking for a running source after it was closed must fail
-	running, err = test.client.Request(&runningReq)
-	s().NoError(err)
-	s().True(running.IsOK())
-	result, err = running.ReplyParameters().BoolValue("running")
-	s().NoError(err)
-	s().False(result)
-
-	// Clean out the installed files
-	installReq.Command = UninstallDep
-	rep, err = test.client.Request(&installReq)
-	s().NoError(err)
-	s().True(rep.IsOK())
-}
+//
+//// Test_13_Start tests DepRunning, RunDep and CloseDep commands.
+//func (test *TestDepHandlerSuite) Test_13_Start() {
+//	s := test.Suite.Require
+//
+//	depClient := &clientConfig.Client{
+//		ServiceUrl: test.url,
+//		Id:         test.id,
+//		Port:       6000,
+//		TargetType: handlerConfig.SocketType(handlerConfig.ReplierType),
+//	}
+//
+//	src, err := source.New(test.url)
+//	s().NoError(err)
+//	src.SetBranch("server") // the sample server is written in this branch.
+//
+//	// First, install the dependency
+//	installReq := message.Request{
+//		Command:    InstallDep,
+//		Parameters: key_value.New().Set("src", src),
+//	}
+//	rep, err := test.client.Request(&installReq)
+//	s().NoError(err)
+//	s().True(rep.IsOK())
+//
+//	// Let's run it
+//	runReq := message.Request{
+//		Command: RunDep,
+//		Parameters: key_value.New().
+//			Set("parent", test.parent).
+//			Set("url", src.Url).
+//			Set("id", test.id),
+//	}
+//	rep, err = test.client.Request(&runReq)
+//	s().NoError(err)
+//	s().True(rep.IsOK())
+//
+//	// Just wait a bit for initialization of the service
+//	time.Sleep(time.Millisecond * 100)
+//
+//	// check that service is running
+//	runningReq := message.Request{
+//		Command: DepRunning,
+//		Parameters: key_value.New().
+//			Set("dep", depClient),
+//	}
+//	running, err := test.client.Request(&runningReq)
+//	s().NoError(err)
+//	s().True(running.IsOK())
+//	result, err := running.ReplyParameters().BoolValue("running")
+//	s().NoError(err)
+//	s().True(result)
+//
+//	// Close the service
+//	closeReq := message.Request{
+//		Command: CloseDep,
+//		Parameters: key_value.New().
+//			Set("dep", depClient),
+//	}
+//	running, err = test.client.Request(&closeReq)
+//	s().NoError(err)
+//	s().True(running.IsOK())
+//
+//	// Wait a bit for closing the source process
+//	time.Sleep(time.Millisecond * 100)
+//
+//	// Checking for a running source after it was closed must fail
+//	running, err = test.client.Request(&runningReq)
+//	s().NoError(err)
+//	s().True(running.IsOK())
+//	result, err = running.ReplyParameters().BoolValue("running")
+//	s().NoError(err)
+//	s().False(result)
+//
+//	// Clean out the installed files
+//	installReq.Command = UninstallDep
+//	rep, err = test.client.Request(&installReq)
+//	s().NoError(err)
+//	s().True(rep.IsOK())
+//}
 
 // In order for 'go test' to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run

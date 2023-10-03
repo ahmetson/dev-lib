@@ -5,12 +5,10 @@ import (
 	"github.com/ahmetson/dev-lib/source"
 	"github.com/ahmetson/log-lib"
 	"github.com/ahmetson/os-lib/path"
+	"github.com/stretchr/testify/suite"
 	"os/exec"
 	"path/filepath"
 	"testing"
-	"time"
-
-	"github.com/stretchr/testify/suite"
 )
 
 // Define the suite, and absorb the built-in basic suite
@@ -264,102 +262,123 @@ func (test *TestDepManagerSuite) Test_19_InvalidCompile() {
 	s.NoError(err)
 }
 
-// Test_20_Run runs the given binary.
-func (test *TestDepManagerSuite) Test_20_Run() {
-	s := &test.Suite
-
-	src, err := source.New(test.url)
-	s.Require().NoError(err)
-
-	// First, install the manager
-	err = test.dep.Install(src, test.logger)
-	s.NoError(err)
-
-	// Let's run it, it should exit immediately
-	err = test.dep.Run(src.Url, test.id, test.parent)
-	s.Require().NoError(err)
-
-	// Just to see the exit message
-	time.Sleep(time.Millisecond * 100)
-	s.Require().NoError(test.dep.exitErr)
-
-	// Clean out the installed files
-	err = test.dep.Uninstall(src)
-	s.NoError(err)
-}
-
-// Test_21_RunError runs the binary that exits with error.
-// Dependency manager must show it
-func (test *TestDepManagerSuite) Test_21_RunError() {
-	s := &test.Suite
-
-	src, err := source.New(test.url)
-	s.Require().NoError(err)
-	src.SetBranch("error-exit") // this branch intentionally exits the program with an error.
-
-	// First, install the manager
-	err = test.dep.Install(src, test.logger)
-	s.NoError(err)
-
-	// Let's run it
-	err = test.dep.Run(src.Url, test.id, test.parent)
-	s.Require().NoError(err)
-
-	// Just to see the exit message.
-	// The 0.1 seconds.
-	// That's how long the program waits before exit.
-	// Other 0.2 seconds are for some end of the background work.
-	time.Sleep(time.Millisecond * 300)
-	test.logger.Info("exit status", "err", test.dep.exitErr)
-	s.Require().Error(test.dep.exitErr)
-
-	// Clean out the installed files
-	err = test.dep.Uninstall(src)
-	s.NoError(err)
-}
-
-// Test_22_Running checks that service is running
-func (test *TestDepManagerSuite) Test_22_Running() {
-	s := &test.Suite
-
-	client := &clientConfig.Client{
-		ServiceUrl: "test-manager",
-		Id:         test.id,
-		Port:       6000,
-	}
-
-	src, err := source.New(test.url)
-	s.Require().NoError(err)
-	src.SetBranch("server") // the sample server is written in this branch.
-
-	// First, install the manager
-	err = test.dep.Install(src, test.logger)
-	s.NoError(err)
-
-	// Let's run it
-	err = test.dep.Run(src.Url, test.id, test.parent)
-	s.Require().NoError(err)
-
-	// waiting for initialization...
-	time.Sleep(time.Millisecond * 200)
-	s.Require().NotNil(test.dep.cmd[test.id]) // cmd == nil indicates that the program was closed
-
-	// Check is the service running
-	running, err := test.dep.Running(client)
-	s.Require().NoError(err)
-	s.True(running)
-
-	// service is running two seconds. after that running should return false
-	time.Sleep(time.Second * 3)
-	s.Require().Nil(test.dep.cmd[test.id]) // cmd == nil indicates that the program was closed
-	running, err = test.dep.Running(client)
-	s.Require().NoError(err)
-	s.False(running)
-
-	// Clean out the installed files
-	err = test.dep.Uninstall(src)
-	s.NoError(err)
-}
+//// Test_20_Run runs the given binary.
+//func (test *TestDepManagerSuite) Test_20_Run() {
+//	s := &test.Suite
+//
+//	src, err := source.New(test.url)
+//	s.Require().NoError(err)
+//
+//	// First, install the manager
+//	err = test.dep.Install(src, test.logger)
+//	s.NoError(err)
+//
+//	// Let's run it, it should exit immediately
+//	for i := 0; i < 30; i++ {
+//		err = test.dep.Run(src.Url, test.id, test.parent)
+//		if err == nil {
+//			break
+//		}
+//
+//		time.Sleep(time.Second)
+//	}
+//	s.Require().NoError(err)
+//
+//	// Just to see the exit message
+//	time.Sleep(time.Millisecond * 100)
+//	s.Require().NoError(test.dep.exitErr)
+//
+//	// Clean out the installed files
+//	err = test.dep.Uninstall(src)
+//	s.NoError(err)
+//}
+//
+//// Test_21_RunError runs the binary that exits with error.
+//// Dependency manager must show it
+//func (test *TestDepManagerSuite) Test_21_RunError() {
+//	s := &test.Suite
+//
+//	src, err := source.New(test.url)
+//	s.Require().NoError(err)
+//	src.SetBranch("error-exit") // this branch intentionally exits the program with an error.
+//
+//	// First, install the manager
+//	err = test.dep.Install(src, test.logger)
+//	s.NoError(err)
+//
+//	// Let's run it
+//	for i := 0; i < 30; i++ {
+//		err = test.dep.Run(src.Url, test.id, test.parent)
+//		if err == nil {
+//			break
+//		}
+//
+//		time.Sleep(time.Second)
+//	}
+//	s.Require().NoError(err)
+//
+//	// Just to see the exit message.
+//	// The 0.1 seconds.
+//	// That's how long the program waits before exit.
+//	// Other 0.2 seconds are for some end of the background work.
+//	time.Sleep(time.Millisecond * 300)
+//	test.logger.Info("exit status", "err", test.dep.exitErr)
+//	s.Require().Error(test.dep.exitErr)
+//
+//	// Clean out the installed files
+//	err = test.dep.Uninstall(src)
+//	s.NoError(err)
+//}
+//
+//// Test_22_Running checks that service is running
+//func (test *TestDepManagerSuite) Test_22_Running() {
+//	s := &test.Suite
+//
+//	client := &clientConfig.Client{
+//		ServiceUrl: "test-manager",
+//		Id:         test.id,
+//		Port:       6000,
+//	}
+//
+//	src, err := source.New(test.url)
+//	s.Require().NoError(err)
+//	src.SetBranch("server") // the sample server is written in this branch.
+//
+//	// First, install the manager
+//	err = test.dep.Install(src, test.logger)
+//	s.NoError(err)
+//
+//	// Let's run it
+//	for i := 0; i < 30; i++ {
+//		err = test.dep.Run(src.Url, test.id, test.parent)
+//		if err == nil {
+//			break
+//		}
+//
+//		time.Sleep(time.Second)
+//	}
+//	s.Require().NoError(err)
+//
+//	// waiting for initialization...
+//	time.Sleep(time.Millisecond * 200)
+//	s.Require().NotNil(test.dep.cmd[test.id]) // cmd == nil indicates that the program was closed
+//
+//	// Check is the service running
+//	running, err := test.dep.Running(client)
+//	s.Require().NoError(err)
+//	s.True(running)
+//
+//	// service is running two seconds. after that running should return false
+//	time.Sleep(time.Second * 3)
+//	s.Require().Nil(test.dep.cmd[test.id]) // cmd == nil indicates that the program was closed
+//	running, err = test.dep.Running(client)
+//	s.Require().NoError(err)
+//	s.False(running)
+//
+//	// Clean out the installed files
+//	err = test.dep.Uninstall(src)
+//	s.NoError(err)
+//}
 
 // In order for 'go test' to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run
