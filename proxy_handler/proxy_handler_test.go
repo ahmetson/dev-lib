@@ -172,7 +172,7 @@ func (test *TestProxyHandlerSuite) Test_14_ProxyHandler_onSetProxyChain() {
 	s().Len(handler.proxyChains[0].Proxies, 2)
 }
 
-// Test_15_onProxyChainsByRuleUrls tests ProxyHandler receiving a ProxyChainsByRuleUrl command.
+// Test_15_ProxyHandler_onProxyChainsByRuleUrl tests ProxyHandler receiving a ProxyChainsByRuleUrl command.
 func (test *TestProxyHandlerSuite) Test_15_ProxyHandler_onProxyChainsByRuleUrl() {
 	s := test.Require
 
@@ -234,6 +234,107 @@ func (test *TestProxyHandlerSuite) Test_15_ProxyHandler_onProxyChainsByRuleUrl()
 	proxyChainKvs, ok = reply.ReplyParameters()["proxy_chains"].([]*service.ProxyChain)
 	s().True(ok)
 	s().Len(proxyChainKvs, 2)
+}
+
+// Test_16_ProxyHandler_units tests ProxyHandler receiving a Units and SetUnits commands.
+func (test *TestProxyHandlerSuite) Test_16_ProxyHandler_units() {
+	s := test.Require
+
+	handler := New(nil, nil)
+	rule1 := service.NewServiceDestination(test.url)
+	rule1Kv, err := key_value.NewFromInterface(rule1)
+	s().NoError(err)
+	unit1 := &service.Unit{
+		ServiceId: "service",
+		HandlerId: "handler",
+		Command:   "command",
+	}
+	unit1Kv, err := key_value.NewFromInterface(unit1)
+	s().NoError(err)
+
+	// the units are empty
+	s().Len(handler.proxyUnits, 0)
+
+	// requesting a unit must return an empty result
+	req := &message.Request{
+		Command:    Units,
+		Parameters: key_value.New().Set("rule", rule1Kv),
+	}
+	reply := handler.onUnits(req)
+	s().True(reply.IsOK())
+	unitRaws, ok := reply.ReplyParameters()["units"].([]*service.Unit)
+	s().True(ok)
+	s().Len(unitRaws, 0)
+
+	// set the units
+	units := []key_value.KeyValue{unit1Kv}
+	req.Command = SetUnits
+	req.Parameters.Set("rule", rule1Kv).Set("units", units)
+	reply = handler.onSetUnits(req)
+	s().True(reply.IsOK())
+
+	// get the units
+	req.Command = Units
+	reply = handler.onUnits(req)
+	s().True(reply.IsOK())
+	unitRaws, ok = reply.ReplyParameters()["units"].([]*service.Unit)
+	s().True(ok)
+	s().Len(unitRaws, 1)
+}
+
+// Test_17_ProxyHandler_onProxyChainsByLastId tests ProxyHandler receiving a ProxyChainsByLastId command.
+func (test *TestProxyHandlerSuite) Test_17_ProxyHandler_onProxyChainsByLastId() {
+	s := test.Require
+
+	req := &message.Request{
+		Command:    ProxyChainsByLastId,
+		Parameters: key_value.New(),
+	}
+
+	handler := New(nil, nil)
+	test.proxyChain.Destination = service.NewServiceDestination(test.url)
+	test.proxyChain.Proxies = []*service.Proxy{test.proxy1, test.proxy2}
+	handler.proxyChains = append(handler.proxyChains, test.proxyChain)
+
+	// the proxy1 is the first, not the last. so it must return an empty result
+	req.Parameters.Set("id", test.proxy1.Id)
+	reply := handler.onProxyChainsByLastId(req)
+	s().True(reply.IsOK())
+	proxyChainKvs, ok := reply.ReplyParameters()["proxy_chains"].([]*service.ProxyChain)
+	s().True(ok)
+	s().Len(proxyChainKvs, 0)
+
+	// the proxy2 is the last, so it must return a one proxy chain
+	req.Parameters.Set("id", test.proxy2.Id)
+	reply = handler.onProxyChainsByLastId(req)
+	s().True(reply.IsOK())
+	proxyChainKvs, ok = reply.ReplyParameters()["proxy_chains"].([]*service.ProxyChain)
+	s().True(ok)
+	s().Len(proxyChainKvs, 1)
+
+}
+
+// Test_18_ProxyHandler_onLastProxies tests ProxyHandler receiving a LastProxies command.
+func (test *TestProxyHandlerSuite) Test_18_ProxyHandler_onLastProxies() {
+	s := test.Require
+
+	req := &message.Request{
+		Command:    ProxyChainsByLastId,
+		Parameters: key_value.New(),
+	}
+
+	handler := New(nil, nil)
+	test.proxyChain.Destination = service.NewServiceDestination(test.url)
+	test.proxyChain.Proxies = []*service.Proxy{test.proxy1, test.proxy2}
+	handler.proxyChains = append(handler.proxyChains, test.proxyChain)
+
+	// the proxy1 is the first, not the last. so it must return an empty result
+	reply := handler.onLastProxies(req)
+	s().True(reply.IsOK())
+	proxyChainKvs, ok := reply.ReplyParameters()["proxies"].([]*service.Proxy)
+	s().True(ok)
+	s().Len(proxyChainKvs, 1)
+
 }
 
 func TestProxyHandler(t *testing.T) {
