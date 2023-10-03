@@ -19,6 +19,7 @@ type Interface interface {
 	ProxyChainsByLastId(id string) ([]*service.ProxyChain, error)   // Returns list of proxy chains by the last proxy id
 	Units(*service.Rule) ([]*service.Unit, error)                   // Returns list of destination units by a rule
 	LastProxies() ([]*service.Proxy, error)                         // Returns list of proxies
+	StartLastProxies() error                                        // Starts all proxies of the service
 }
 
 type Client struct {
