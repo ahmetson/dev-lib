@@ -57,6 +57,12 @@ func (proxyHandler *ProxyHandler) SetServiceId(id string) {
 }
 
 func (proxyHandler *ProxyHandler) setUnits(rule *service.Rule, units []*service.Unit) {
+	for firstRule := range proxyHandler.proxyUnits {
+		if service.IsEqualRule(firstRule, rule) {
+			proxyHandler.proxyUnits[firstRule] = units
+			return
+		}
+	}
 	proxyHandler.proxyUnits[rule] = units
 }
 
