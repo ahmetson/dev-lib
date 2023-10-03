@@ -222,7 +222,7 @@ func (ctx *Context) StartProxyHandler() error {
 		return fmt.Errorf("log.New('proxy-handler'): %w", err)
 	}
 
-	proxyHandler := proxy_handler.New()
+	proxyHandler := proxy_handler.New(ctx.configClient, ctx.depClient)
 	proxyHandlerConfig := proxy_handler.HandlerConfig(ctx.serviceId)
 	proxyHandler.SetConfig(proxyHandlerConfig)
 	err = proxyHandler.SetLogger(proxyLogger)
