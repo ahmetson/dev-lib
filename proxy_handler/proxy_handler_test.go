@@ -1,18 +1,77 @@
 package proxy_handler
 
 import (
+	"fmt"
 	"github.com/ahmetson/client-lib"
+	clientConfig "github.com/ahmetson/client-lib/config"
+	configClient "github.com/ahmetson/config-lib/client"
+	configHandler "github.com/ahmetson/config-lib/handler"
 	"github.com/ahmetson/config-lib/service"
 	"github.com/ahmetson/datatype-lib/data_type/key_value"
 	"github.com/ahmetson/datatype-lib/message"
+	"github.com/ahmetson/dev-lib/source"
+	handlerConfig "github.com/ahmetson/handler-lib/config"
 	"github.com/ahmetson/handler-lib/manager_client"
 	"github.com/ahmetson/handler-lib/route"
 	"github.com/ahmetson/log-lib"
+	"github.com/pebbe/zmq4"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/suite"
 )
+
+type TestDepClient struct {
+	installedFail bool
+	installed     bool
+	installFail   bool
+	runFail       bool
+	runningFail   bool
+	running       bool
+}
+
+func (depClient *TestDepClient) Close() error {
+	return nil
+}
+
+func (depClient *TestDepClient) Timeout(time.Duration) {}
+
+func (depClient *TestDepClient) Attempt(uint8) {}
+
+func (depClient *TestDepClient) CloseDep(*clientConfig.Client) error {
+	return nil
+}
+
+func (depClient *TestDepClient) Uninstall(*source.Src) error {
+	return nil
+}
+
+func (depClient *TestDepClient) Run(string, string, *clientConfig.Client) error {
+	if depClient.runFail {
+		return fmt.Errorf("run fail")
+	}
+	return nil
+}
+
+func (depClient *TestDepClient) Install(*source.Src) error {
+	if depClient.installFail {
+		return fmt.Errorf("install fail")
+	}
+	return nil
+}
+
+func (depClient *TestDepClient) Running(*clientConfig.Client) (bool, error) {
+	if depClient.runningFail {
+		return false, fmt.Errorf("running fail")
+	}
+	return depClient.running, nil
+}
+func (depClient *TestDepClient) Installed(string) (bool, error) {
+	if depClient.installedFail {
+		return false, fmt.Errorf("installed fail")
+	}
+	return depClient.installed, nil
+}
 
 // Define the suite, and absorb the built-in basic suite
 // functionality from testify - including a T() method which
@@ -335,6 +394,144 @@ func (test *TestProxyHandlerSuite) Test_18_ProxyHandler_onLastProxies() {
 	s().True(ok)
 	s().Len(proxyChainKvs, 1)
 
+}
+
+// Test_19_ProxyHandler_onStartProxies tests starting the proxies by StartLastProxies command.
+func (test *TestProxyHandlerSuite) Test_19_ProxyHandler_onStartProxies() {
+	s := test.Require
+
+	mockedDepManager := &TestDepClient{}
+
+	rule := service.NewHandlerDestination("handler_2")
+	proxyChain2 := &service.ProxyChain{
+		Sources:     []string{},
+		Proxies:     []*service.Proxy{test.proxy1},
+		Destination: rule,
+	}
+
+	serviceSources := []*service.Source{
+		{
+			Proxies: []*service.SourceService{
+				{
+					Proxy: test.proxy1,
+					Manager: &clientConfig.Client{
+						ServiceUrl: test.url,
+						Id:         "proxy_manager",
+						Port:       0,
+						TargetType: zmq4.REP,
+					},
+					Clients: []*clientConfig.Client{
+						{
+							ServiceUrl: test.url,
+							Id:         "destination_handler",
+							Port:       0,
+							TargetType: zmq4.REP,
+						},
+					},
+				},
+			},
+			Rule: rule,
+		},
+	}
+
+	serviceConfig := &service.Service{
+		Type:    service.IndependentType,
+		Id:      test.id,
+		Url:     test.url,
+		Sources: make([]*service.Source, 0),
+		Manager: &clientConfig.Client{
+			ServiceUrl: test.id,
+			Id:         "manager",
+			Port:       0,
+			TargetType: zmq4.REP,
+		},
+		Handlers:   make([]*handlerConfig.Handler, 0),
+		Extensions: make([]*clientConfig.Client, 0),
+	}
+
+	req := &message.Request{
+		Command:    ProxyChainsByLastId,
+		Parameters: key_value.New(),
+	}
+
+	engine, err := configHandler.New()
+	s().NoError(err)
+	err = engine.Start()
+	s().NoError(err)
+
+	socket, err := configClient.New()
+	s().NoError(err)
+
+	err = socket.SetService(serviceConfig)
+	s().NoError(err)
+
+	handler := New(nil, nil)
+	test.proxyChain.Destination = service.NewServiceDestination(test.url)
+	test.proxyChain.Proxies = []*service.Proxy{test.proxy1, test.proxy2}
+	handler.proxyChains = append(handler.proxyChains, test.proxyChain)
+	handler.depClient = mockedDepManager
+	handler.engine = socket
+	handler.SetServiceId(test.id)
+
+	//
+	// the proxy1 is the first, not the last. so it must return an empty result
+	//
+
+	// first it tests without a config a set in the services
+	// first make sure that installation fails
+	mockedDepManager.installedFail = true
+	reply := handler.onStartLastProxies(req)
+	s().False(reply.IsOK())
+
+	// then, make sure that install fail
+	mockedDepManager.installedFail = false
+	mockedDepManager.installed = false
+	mockedDepManager.installFail = true
+	reply = handler.onStartLastProxies(req)
+	s().False(reply.IsOK())
+
+	// then make sure that run fails
+	mockedDepManager.installFail = false
+	mockedDepManager.runFail = true
+	reply = handler.onStartLastProxies(req)
+	s().False(reply.IsOK())
+
+	// finally, the code must be working
+	mockedDepManager.runFail = false
+	reply = handler.onStartLastProxies(req)
+	s().True(reply.IsOK())
+
+	//
+	// The second proxy chain service is in the configuration.
+	//
+	// There is an error in running
+	// test with running
+	// test with not running but with an error in run
+	// test without an error in run
+	serviceConfig.Sources = serviceSources
+	err = socket.SetService(serviceConfig)
+	s().NoError(err)
+	handler.proxyChains = append(handler.proxyChains, proxyChain2)
+
+	mockedDepManager.runningFail = true
+	reply = handler.onStartLastProxies(req)
+	s().False(reply.IsOK())
+
+	// Runnings so skip it
+	mockedDepManager.runningFail = false
+	mockedDepManager.running = true
+	reply = handler.onStartLastProxies(req)
+	s().True(reply.IsOK())
+
+	// not running and run must fail
+	mockedDepManager.running = false
+	mockedDepManager.runFail = true
+	reply = handler.onStartLastProxies(req)
+	s().False(reply.IsOK())
+
+	// clean out
+	err = handler.engine.Close()
+	s().Nil(err)
 }
 
 func TestProxyHandler(t *testing.T) {
