@@ -15,8 +15,14 @@ import (
 )
 
 const (
-	Category             = "proxy_handler"            // handler category
-	SetProxyChain        = "set-proxy-chain"          // route command that sets a new proxy chain
+	Category = "proxy_handler" // handler category
+
+	//
+	// Commands of the proxy handler
+	//
+
+	// SetProxyChain command sets a new proxy chain
+	SetProxyChain        = "set-proxy-chain"
 	ProxyChainsByRuleUrl = "proxy-chains-by-rule-url" // route command that returns list of proxy chains by url in the rule
 	SetUnits             = "set-units"                // route command that sets the proxy units
 	ProxyChainsByLastId  = "proxy-chains-by-last-id"  // route command that returns list of proxy chains by the id of the last proxy
