@@ -22,13 +22,14 @@ const (
 	//
 
 	// SetProxyChain command sets a new proxy chain
-	SetProxyChain        = "set-proxy-chain"
-	ProxyChainsByRuleUrl = "proxy-chains-by-rule-url" // route command that returns list of proxy chains by url in the rule
-	SetUnits             = "set-units"                // route command that sets the proxy units
-	ProxyChainsByLastId  = "proxy-chains-by-last-id"  // route command that returns list of proxy chains by the id of the last proxy
-	Units                = "units"                    // route command that returns a list of destination units for a rule
-	LastProxies          = "last-proxies"             // route command that returns a list of last proxies in the proxy chains.
-	StartLastProxies     = "start-last-proxies"       // route command that starts all proxies
+	SetProxyChain       = "set-proxy-chain"
+	SetUnits            = "set-units"               // route command that sets the proxy units
+	ProxyChainsByLastId = "proxy-chains-by-last-id" // returns list of proxy chains by the id of the last proxy
+	Units               = "units"                   // route command that returns a list of destination units for a rule
+	LastProxies         = "last-proxies"            // that returns a list of last proxies in the proxy chains.
+	StartLastProxies    = "start-last-proxies"      // route command that starts all proxies
+	ProxyChainByRule    = "proxy-chain-by-rule"     // route command that returns a proxy chains by the rule
+	ProxyChains         = "proxy-chains"            // returns list of proxy chains
 )
 
 type ProxyHandler struct {
@@ -122,20 +123,31 @@ func (proxyHandler *ProxyHandler) onSetProxyChain(req message.RequestInterface) 
 	return req.Ok(key_value.New())
 }
 
-// onProxyChainsByRuleUrl is a handler function to get the proxy chains by the destination.
+// onProxyChainByRule is a handler function to get the proxy chain by the destination.
 //
 // This method is intended to be called by the independent service, to return the list of proxy chains in the service.
 //
 // Returns empty data if no proxy chain is found.
-func (proxyHandler *ProxyHandler) onProxyChainsByRuleUrl(req message.RequestInterface) message.ReplyInterface {
-	url, err := req.RouteParameters().StringValue("url")
+func (proxyHandler *ProxyHandler) onProxyChainByRule(req message.RequestInterface) message.ReplyInterface {
+	raw, err := req.RouteParameters().NestedValue("rule")
 	if err != nil {
-		return req.Fail(fmt.Sprintf("req.RouteParameters().StringValue('url'): %v", err))
+		return req.Fail(fmt.Sprintf("req.RouteParameters().NestedValue('rule'): %v", err))
+	}
+	var rule service.Rule
+	err = raw.Interface(&rule)
+	if err != nil {
+		return req.Fail(fmt.Sprintf("raw.Interface('service.Rule'): %v", err))
 	}
 
-	proxyChains := service.ProxyChainsByRuleUrl(proxyHandler.proxyChains, url)
-
-	params := key_value.New().Set("proxy_chains", proxyChains)
+	proxyChain := service.ProxyChainByRule(proxyHandler.proxyChains, &rule)
+	if proxyChain == nil {
+		proxyChain = &service.ProxyChain{
+			Sources:     []string{},
+			Proxies:     []*service.Proxy{},
+			Destination: service.NewServiceDestination(), // service.NewServiceDestination returns empty rule
+		}
+	}
+	params := key_value.New().Set("proxy_chain", proxyChain)
 
 	return req.Ok(params)
 }
@@ -318,12 +330,22 @@ func (proxyHandler *ProxyHandler) onStartLastProxies(req message.RequestInterfac
 	return req.Ok(key_value.New())
 }
 
+// onProxyChains returns all proxy chains
+func (proxyHandler *ProxyHandler) onProxyChains(req message.RequestInterface) message.ReplyInterface {
+	proxyChains := make([]*service.ProxyChain, 0, len(proxyHandler.proxyChains))
+	proxyChains = append(proxyChains, proxyHandler.proxyChains...)
+
+	params := key_value.New().Set("proxy_chains", proxyHandler.proxyChains)
+
+	return req.Ok(params)
+}
+
 func (proxyHandler *ProxyHandler) setRoutes() error {
 	if err := proxyHandler.Handler.Route(SetProxyChain, proxyHandler.onSetProxyChain); err != nil {
 		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", SetProxyChain, err)
 	}
-	if err := proxyHandler.Handler.Route(ProxyChainsByRuleUrl, proxyHandler.onProxyChainsByRuleUrl); err != nil {
-		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", ProxyChainsByRuleUrl, err)
+	if err := proxyHandler.Handler.Route(ProxyChainByRule, proxyHandler.onProxyChainByRule); err != nil {
+		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", ProxyChainByRule, err)
 	}
 	if err := proxyHandler.Handler.Route(SetUnits, proxyHandler.onSetUnits); err != nil {
 		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", SetUnits, err)
@@ -339,6 +361,9 @@ func (proxyHandler *ProxyHandler) setRoutes() error {
 	}
 	if err := proxyHandler.Handler.Route(StartLastProxies, proxyHandler.onStartLastProxies); err != nil {
 		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", StartLastProxies, err)
+	}
+	if err := proxyHandler.Handler.Route(ProxyChains, proxyHandler.onProxyChains); err != nil {
+		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", ProxyChains, err)
 	}
 
 	return nil

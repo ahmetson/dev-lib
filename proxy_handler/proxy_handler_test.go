@@ -231,8 +231,8 @@ func (test *TestProxyHandlerSuite) Test_14_ProxyHandler_onSetProxyChain() {
 	s().Len(handler.proxyChains[0].Proxies, 2)
 }
 
-// Test_15_ProxyHandler_onProxyChainsByRuleUrl tests ProxyHandler receiving a ProxyChainsByRuleUrl command.
-func (test *TestProxyHandlerSuite) Test_15_ProxyHandler_onProxyChainsByRuleUrl() {
+// Test_15_ProxyHandler_onProxyChainByRule tests ProxyHandler receiving a ProxyChainByRule command.
+func (test *TestProxyHandlerSuite) Test_15_ProxyHandler_onProxyChainByRule() {
 	s := test.Require
 
 	req := &message.Request{
@@ -245,54 +245,48 @@ func (test *TestProxyHandlerSuite) Test_15_ProxyHandler_onProxyChainsByRuleUrl()
 	test.proxyChain.Proxies = []*service.Proxy{test.proxy1, test.proxy2}
 	handler.proxyChains = append(handler.proxyChains, test.proxyChain)
 
+	ruleStruct := service.NewServiceDestination(test.url)
+	ruleKv, err := key_value.NewFromInterface(ruleStruct)
+	s().NoError(err)
+
 	// the handler has one proxy, return it
-	req.Parameters.Set("url", test.url)
-	reply := handler.onProxyChainsByRuleUrl(req)
+	req.Parameters.Set("rule", ruleKv)
+	reply := handler.onProxyChainByRule(req)
+	fmt.Printf("proxy chain: %s\n", reply.ErrorMessage())
 	s().True(reply.IsOK())
-	proxyChainKvs, ok := reply.ReplyParameters()["proxy_chains"].([]*service.ProxyChain)
+	proxyChainKv, ok := reply.ReplyParameters()["proxy_chain"].(*service.ProxyChain)
 	s().True(ok)
-	s().Len(proxyChainKvs, 1)
+	s().NotNil(proxyChainKv)
+	s().False(proxyChainKv.Destination.IsEmpty())
 
 	// try to get non-existing url must return an empty value
-	req.Parameters.Set("url", "non_existing_service")
-	reply = handler.onProxyChainsByRuleUrl(req)
+	invalidRule := service.NewServiceDestination("non_existing_service")
+	invalidKv, err := key_value.NewFromInterface(invalidRule)
+	s().NoError(err)
+	req.Parameters.Set("rule", invalidKv)
+	reply = handler.onProxyChainByRule(req)
 	s().True(reply.IsOK())
-	proxyChainKvs, ok = reply.ReplyParameters()["proxy_chains"].([]*service.ProxyChain)
+	proxyChainKv, ok = reply.ReplyParameters()["proxy_chain"].(*service.ProxyChain)
 	s().True(ok)
-	s().Len(proxyChainKvs, 0)
+	s().True(proxyChainKv.Destination.IsEmpty())
 
 	// add another proxy chain for another url
 	// must not interfere to counting other services
-	rule := service.NewServiceDestination("url_2")
+	rule2 := service.NewServiceDestination("url_2")
 	proxyChain2 := &service.ProxyChain{
 		Sources:     []string{},
 		Proxies:     []*service.Proxy{test.proxy1},
-		Destination: rule,
+		Destination: rule2,
 	}
 	handler.proxyChains = append(handler.proxyChains, proxyChain2)
 
-	req.Parameters.Set("url", test.url)
-	reply = handler.onProxyChainsByRuleUrl(req)
+	req.Parameters.Set("rule", ruleKv)
+	reply = handler.onProxyChainByRule(req)
 	s().True(reply.IsOK())
-	proxyChainKvs, ok = reply.ReplyParameters()["proxy_chains"].([]*service.ProxyChain)
+	proxyChainKv, ok = reply.ReplyParameters()["proxy_chain"].(*service.ProxyChain)
 	s().True(ok)
-	s().Len(proxyChainKvs, 1)
+	s().False(proxyChainKv.Destination.IsEmpty())
 
-	// adding a proxy chain of the same type must return both new added proxy chain and old one
-	rule = service.NewHandlerDestination(test.url, "handler_category")
-	proxyChain3 := &service.ProxyChain{
-		Sources:     []string{},
-		Proxies:     []*service.Proxy{test.proxy1},
-		Destination: rule,
-	}
-	handler.proxyChains = append(handler.proxyChains, proxyChain3)
-
-	req.Parameters.Set("url", test.url)
-	reply = handler.onProxyChainsByRuleUrl(req)
-	s().True(reply.IsOK())
-	proxyChainKvs, ok = reply.ReplyParameters()["proxy_chains"].([]*service.ProxyChain)
-	s().True(ok)
-	s().Len(proxyChainKvs, 2)
 }
 
 // Test_16_ProxyHandler_units tests ProxyHandler receiving a Units and SetUnits commands.
