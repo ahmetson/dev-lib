@@ -1,4 +1,4 @@
-package dev
+package context
 
 import (
 	"github.com/ahmetson/log-lib"
@@ -56,6 +56,6 @@ func (test *TestDevCtxSuite) Test_10_New() {
 
 // In order for 'go test' to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run
-func TestCtx(t *testing.T) {
+func TestDevCtx(t *testing.T) {
 	suite.Run(t, new(TestDevCtxSuite))
 }

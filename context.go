@@ -3,8 +3,6 @@ package context
 import (
 	"fmt"
 	configClient "github.com/ahmetson/config-lib/client"
-	ctxConfig "github.com/ahmetson/dev-lib/config"
-	"github.com/ahmetson/dev-lib/dev"
 	"github.com/ahmetson/dev-lib/proxy_client"
 	"github.com/ahmetson/os-lib/arg"
 )
@@ -14,7 +12,7 @@ type Interface interface {
 	Config() configClient.Interface
 	SetProxyClient(p proxy_client.Interface) error
 	ProxyClient() proxy_client.Interface
-	Type() ctxConfig.ContextType
+	Type() ContextType
 	StartConfig() error
 	StartDepManager() error
 	StartProxyHandler() error
@@ -25,18 +23,18 @@ type Interface interface {
 
 // A New orchestra. Optionally pass the type of the context.
 // Or the context type could be retrieved from the config.ContextFlag.
-func New(ctxTypes ...ctxConfig.ContextType) (Interface, error) {
-	ctxType := ctxConfig.DevContext // default is used a dev context
+func New(ctxTypes ...ContextType) (Interface, error) {
+	ctxType := DevContext // default is used a dev context
 
 	if len(ctxTypes) > 0 {
 		ctxType = ctxTypes[0]
-	} else if arg.FlagExist(ctxConfig.ContextFlag) {
-		ctxType = arg.FlagValue(ctxConfig.ContextFlag)
+	} else if arg.FlagExist(ContextFlag) {
+		ctxType = arg.FlagValue(ContextFlag)
 	}
 
-	if ctxType == ctxConfig.DevContext {
-		return dev.New()
+	if ctxType == DevContext {
+		return NewDev()
 	}
 
-	return nil, fmt.Errorf("only %s supported, not %s", ctxConfig.DevContext, ctxType)
+	return nil, fmt.Errorf("only %s supported, not %s", DevContext, ctxType)
 }

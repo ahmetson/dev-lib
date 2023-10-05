@@ -1,11 +1,10 @@
-// Package dev sets up the developer context.
-package dev
+// Package context sets up the developer context.
+package context
 
 import (
 	"fmt"
 	configClient "github.com/ahmetson/config-lib/client"
 	configHandler "github.com/ahmetson/config-lib/handler"
-	devConfig "github.com/ahmetson/dev-lib/config"
 	"github.com/ahmetson/dev-lib/dep_client"
 	"github.com/ahmetson/dev-lib/dep_handler"
 	"github.com/ahmetson/dev-lib/dep_manager"
@@ -28,9 +27,9 @@ type Context struct {
 	serviceUrl          string
 }
 
-// New creates Developer context.
+// NewDev creates Developer context.
 // Loads it with the Dev Configuration and Dev DepManager Manager.
-func New() (*Context, error) {
+func NewDev() (*Context, error) {
 	ctx := &Context{}
 
 	socket, err := configClient.New()
@@ -76,8 +75,8 @@ func (ctx *Context) ProxyClient() proxy_client.Interface {
 }
 
 // Type returns the context type. Useful to identify contexts in the generic functions.
-func (ctx *Context) Type() devConfig.ContextType {
-	return devConfig.DevContext
+func (ctx *Context) Type() ContextType {
+	return DevContext
 }
 
 // Close the dep handler and config handler. The dep manager client is not closed
@@ -143,16 +142,16 @@ func (ctx *Context) StartDepManager() error {
 		return fmt.Errorf("dep manager already started")
 	}
 	// Set the development context parameters
-	if err := devConfig.SetDevDefaults(ctx.configClient); err != nil {
+	if err := SetDevDefaults(ctx.configClient); err != nil {
 		return fmt.Errorf("config.SetDevDefaults: %w", err)
 	}
-	binPath, err := ctx.configClient.String(devConfig.BinKey)
+	binPath, err := ctx.configClient.String(BinKey)
 	if err != nil {
-		return fmt.Errorf("configClient.String(%s): %w", devConfig.BinKey, err)
+		return fmt.Errorf("configClient.String(%s): %w", BinKey, err)
 	}
-	srcPath, err := ctx.configClient.String(devConfig.SrcKey)
+	srcPath, err := ctx.configClient.String(SrcKey)
 	if err != nil {
-		return fmt.Errorf("configClient.String(%s): %w", devConfig.SrcKey, err)
+		return fmt.Errorf("configClient.String(%s): %w", SrcKey, err)
 	}
 
 	//

@@ -1,5 +1,5 @@
 // Package config defines the specific parameters of the Contexts and Dev Context
-package config
+package context
 
 type ContextType = string
 

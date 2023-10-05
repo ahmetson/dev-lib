@@ -1,7 +1,6 @@
 package context
 
 import (
-	ctxConfig "github.com/ahmetson/dev-lib/config"
 	"github.com/stretchr/testify/suite"
 	"testing"
 )
@@ -22,13 +21,13 @@ func (test *TestCtxSuite) Test_0_New() {
 	s := &test.Suite
 
 	// Before testing, we make sure that the files don't exist
-	_, err := New(ctxConfig.UnknownContext)
+	_, err := New(UnknownContext)
 	s.Require().Error(err, "only dev context supported")
 
-	ctx, err := New(ctxConfig.DevContext)
+	ctx, err := New(DevContext)
 	s.Require().NoError(err)
 
-	s.Require().Equal(ctxConfig.DevContext, ctx.Type())
+	s.Require().Equal(DevContext, ctx.Type())
 }
 
 // In order for 'go test' to run this suite, we need to create
