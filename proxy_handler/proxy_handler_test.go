@@ -517,7 +517,7 @@ func (test *TestProxyHandlerSuite) Test_19_ProxyHandler_onStartProxies() {
 	reply = handler.onStartLastProxies(req)
 	s().False(reply.IsOK())
 
-	// Runnings so skip it
+	// Running's so skip it
 	mockedDepManager.runningFail = false
 	mockedDepManager.running = true
 	reply = handler.onStartLastProxies(req)

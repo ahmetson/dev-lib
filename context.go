@@ -3,7 +3,7 @@ package context
 import (
 	"fmt"
 	configClient "github.com/ahmetson/config-lib/client"
-	ctxConfig "github.com/ahmetson/dev-lib/base/config"
+	ctxConfig "github.com/ahmetson/dev-lib/config"
 	"github.com/ahmetson/dev-lib/dev"
 	"github.com/ahmetson/dev-lib/proxy_client"
 	"github.com/ahmetson/os-lib/arg"

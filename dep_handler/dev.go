@@ -6,7 +6,7 @@ import (
 	clientConfig "github.com/ahmetson/client-lib/config"
 	"github.com/ahmetson/datatype-lib/data_type/key_value"
 	"github.com/ahmetson/datatype-lib/message"
-	"github.com/ahmetson/dev-lib/base/dep_manager"
+	"github.com/ahmetson/dev-lib/dep_manager"
 	"github.com/ahmetson/dev-lib/source"
 	"github.com/ahmetson/handler-lib/base"
 	handlerConfig "github.com/ahmetson/handler-lib/config"

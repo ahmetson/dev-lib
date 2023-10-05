@@ -5,7 +5,6 @@ import (
 	"fmt"
 	configClient "github.com/ahmetson/config-lib/client"
 	configHandler "github.com/ahmetson/config-lib/handler"
-	baseConfig "github.com/ahmetson/dev-lib/base/config"
 	devConfig "github.com/ahmetson/dev-lib/config"
 	"github.com/ahmetson/dev-lib/dep_client"
 	"github.com/ahmetson/dev-lib/dep_handler"
@@ -77,8 +76,8 @@ func (ctx *Context) ProxyClient() proxy_client.Interface {
 }
 
 // Type returns the context type. Useful to identify contexts in the generic functions.
-func (ctx *Context) Type() baseConfig.ContextType {
-	return baseConfig.DevContext
+func (ctx *Context) Type() devConfig.ContextType {
+	return devConfig.DevContext
 }
 
 // Close the dep handler and config handler. The dep manager client is not closed
