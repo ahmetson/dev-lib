@@ -19,7 +19,6 @@ import (
 // A Context handles the config of the contexts
 type Context struct {
 	configClient        configClient.Interface
-	depClient           dep_client.Interface
 	depHandler          *dep_handler.DepHandler
 	depHandlerManager   manager_client.Interface
 	proxyClient         proxy_client.Interface
@@ -40,14 +39,6 @@ func New() (*Context, error) {
 		return nil, fmt.Errorf("configClient.New: %w", err)
 	}
 	ctx.SetConfig(socket)
-
-	depClient, err := dep_client.New()
-	if err != nil {
-		return nil, fmt.Errorf("dep_client.New: %w", err)
-	}
-	if err := ctx.SetDepManager(depClient); err != nil {
-		return nil, fmt.Errorf("ctx.SetDepManager: %w", err)
-	}
 
 	return ctx, nil
 }
@@ -83,22 +74,6 @@ func (ctx *Context) SetProxyClient(proxyClient proxy_client.Interface) error {
 // ProxyClient returns the client that works with proxies
 func (ctx *Context) ProxyClient() proxy_client.Interface {
 	return ctx.proxyClient
-}
-
-// SetDepManager sets the dependency manager in the context.
-func (ctx *Context) SetDepManager(depClient dep_client.Interface) error {
-	if ctx.configClient == nil {
-		return fmt.Errorf("no configuration")
-	}
-
-	ctx.depClient = depClient
-
-	return nil
-}
-
-// DepManager returns the dependency manager
-func (ctx *Context) DepManager() dep_client.Interface {
-	return ctx.depClient
 }
 
 // Type returns the context type. Useful to identify contexts in the generic functions.
@@ -222,7 +197,12 @@ func (ctx *Context) StartProxyHandler() error {
 		return fmt.Errorf("log.New('proxy-handler'): %w", err)
 	}
 
-	proxyHandler := proxy_handler.New(ctx.configClient, ctx.depClient)
+	depClient, err := dep_client.New()
+	if err != nil {
+		return fmt.Errorf("dep_client.New: %w", err)
+	}
+
+	proxyHandler := proxy_handler.New(ctx.configClient, depClient)
 	proxyHandlerConfig := proxy_handler.HandlerConfig(ctx.serviceId)
 	proxyHandler.SetConfig(proxyHandlerConfig)
 	err = proxyHandler.SetLogger(proxyLogger)

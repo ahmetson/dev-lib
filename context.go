@@ -4,7 +4,6 @@ import (
 	"fmt"
 	configClient "github.com/ahmetson/config-lib/client"
 	ctxConfig "github.com/ahmetson/dev-lib/base/config"
-	"github.com/ahmetson/dev-lib/dep_client"
 	"github.com/ahmetson/dev-lib/dev"
 	"github.com/ahmetson/dev-lib/proxy_client"
 	"github.com/ahmetson/os-lib/arg"
@@ -13,8 +12,6 @@ import (
 type Interface interface {
 	SetConfig(p configClient.Interface)
 	Config() configClient.Interface
-	SetDepManager(dep_client.Interface) error
-	DepManager() dep_client.Interface
 	SetProxyClient(p proxy_client.Interface) error
 	ProxyClient() proxy_client.Interface
 	Type() ctxConfig.ContextType
