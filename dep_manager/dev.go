@@ -28,8 +28,6 @@ type DepManager struct {
 
 	Src string `json:"SERVICE_DEPS_SRC"`
 	Bin string `json:"SERVICE_DEPS_BIN"`
-
-	parent *clientConfig.Client
 }
 
 // New source manager in the Dev context.
@@ -179,7 +177,8 @@ func (dep *DepManager) build(url string, logger *log.Logger) error {
 	return nil
 }
 
-// Run runs the binary. If the binary isn't running, then it will return an error.
+// Run runs the binary.
+// If it fails to run, then it will return an error.
 func (dep *DepManager) Run(url string, id string, parent *clientConfig.Client) error {
 	binUrl := path.BinPath(dep.Bin, urlToFileName(url))
 	configFlag := fmt.Sprintf("--url=%s", url)
