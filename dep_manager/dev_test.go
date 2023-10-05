@@ -110,12 +110,12 @@ func (test *TestDepManagerSuite) Test_12_SourcePath() {
 	test.Suite.Equal(expected, test.dep.srcPath(url))
 }
 
-// Test_13_Download makes sure to downloadSrc the remote repository into the context.
+// Test_13_downloadSrc makes sure to downloadSrc the remote repository into the context.
 // This is the first part of Install.
 // The second part of Install is building.
 //
 // Tests DepManager.downloadSrc and srcExist.
-func (test *TestDepManagerSuite) Test_13_Download() {
+func (test *TestDepManagerSuite) Test_13_downloadSrc() {
 	s := &test.Suite
 
 	// There should not be any source code before downloading
