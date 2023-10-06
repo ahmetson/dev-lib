@@ -278,7 +278,7 @@ func (proxyHandler *ProxyHandler) onStartLastProxies(req message.RequestInterfac
 		return req.Fail(fmt.Sprintf("engine.Service('%s'): %v", proxyHandler.serviceId, err))
 	}
 
-	// todo make sure to run in concurrency
+	// todo make sure to run in concurrency to run multiple proxies on parallel
 	for i := range proxies {
 		proxy := proxies[i]
 
@@ -294,30 +294,31 @@ func (proxyHandler *ProxyHandler) onStartLastProxies(req message.RequestInterfac
 			}
 
 			// todo make sure to update the client parameters with the rule units
+			// todo if it's running, then compare the parameters of the service and proxy for the changes
 			if running {
 				continue
 			}
 
-			if err := depManager.Run(proxy.Url, proxy.Id, serviceConfig.Manager, ""); err != nil {
+			if err := depManager.Run(proxy.Url, proxy.Id, serviceConfig.Manager, proxy.LocalBin); err != nil {
 				return req.Fail(fmt.Sprintf("depManager.Run('%s', '%s'): %v", proxy.Url, proxy.Id, err))
 			}
 
 			continue
 		}
 
-		installed, err := depManager.Installed(proxy.Url, "")
+		installed, err := depManager.Installed(proxy.Url, proxy.LocalBin)
 		if err != nil {
 			return req.Fail(fmt.Sprintf("depManager.Installed('%s'): %v", proxy.Url, err))
 		}
 
 		if !installed {
-			err = depManager.Install(proxy.Url, "")
+			err = depManager.Install(proxy.Url, proxy.LocalSrc)
 			if err != nil {
 				return req.Fail(fmt.Sprintf("depManager.Install: %v", err))
 			}
 		}
 
-		if err := depManager.Run(proxy.Url, proxy.Id, serviceConfig.Manager, ""); err != nil {
+		if err := depManager.Run(proxy.Url, proxy.Id, serviceConfig.Manager, proxy.LocalBin); err != nil {
 			return req.Fail(fmt.Sprintf("depManager.Run('%s', '%s'): %v", proxy.Url, proxy.Id, err))
 		}
 	}
