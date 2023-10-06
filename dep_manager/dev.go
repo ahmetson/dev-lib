@@ -38,7 +38,7 @@ type Dep struct {
 // A DepManager Manager builds, runs or stops the dependency services
 type DepManager struct {
 	runningDeps map[string]*Dep
-	exitErr     error
+	timeout     time.Duration
 
 	Src string `json:"SERVICE_DEPS_SRC"` // Default Src path
 	Bin string `json:"SERVICE_DEPS_BIN"`
