@@ -7,7 +7,6 @@ import (
 	"github.com/ahmetson/datatype-lib/data_type/key_value"
 	"github.com/ahmetson/datatype-lib/message"
 	"github.com/ahmetson/dev-lib/dep_manager"
-	"github.com/ahmetson/dev-lib/source"
 	handlerConfig "github.com/ahmetson/handler-lib/config"
 	"github.com/ahmetson/handler-lib/manager_client"
 	"github.com/ahmetson/log-lib"
@@ -107,9 +106,6 @@ func (test *TestDepHandlerSuite) TearDownTest() {
 func (test *TestDepHandlerSuite) Test_10_Install() {
 	s := test.Suite.Require
 
-	src, err := source.New(test.url)
-	s().NoError(err)
-
 	// installation must fail since nothing installed
 	req := message.Request{
 		Command:    DepInstalled,
@@ -125,7 +121,7 @@ func (test *TestDepHandlerSuite) Test_10_Install() {
 	// There should be a source code
 	installReq := message.Request{
 		Command:    InstallDep,
-		Parameters: key_value.New().Set("src", src),
+		Parameters: key_value.New().Set("url", test.url),
 	}
 	rep, err = test.client.Request(&installReq)
 	s().NoError(err)
@@ -149,9 +145,6 @@ func (test *TestDepHandlerSuite) Test_10_Install() {
 func (test *TestDepHandlerSuite) Test_11_Uninstall() {
 	s := test.Suite.Require
 
-	src, err := source.New(test.url)
-	s().NoError(err)
-
 	// The binary must be installed to uninstall
 	req := message.Request{
 		Command:    DepInstalled,
@@ -167,7 +160,7 @@ func (test *TestDepHandlerSuite) Test_11_Uninstall() {
 	// Uninstall
 	uninstallReq := message.Request{
 		Command:    UninstallDep,
-		Parameters: key_value.New().Set("src", src),
+		Parameters: key_value.New().Set("url", test.url),
 	}
 	rep, err = test.client.Request(&uninstallReq)
 	s().NoError(err)

@@ -8,7 +8,6 @@ import (
 	"github.com/ahmetson/datatype-lib/data_type/key_value"
 	"github.com/ahmetson/datatype-lib/message"
 	"github.com/ahmetson/dev-lib/dep_client"
-	"github.com/ahmetson/dev-lib/source"
 	"github.com/ahmetson/handler-lib/base"
 	handlerConfig "github.com/ahmetson/handler-lib/config"
 	"slices"
@@ -299,30 +298,26 @@ func (proxyHandler *ProxyHandler) onStartLastProxies(req message.RequestInterfac
 				continue
 			}
 
-			if err := depManager.Run(proxy.Url, proxy.Id, serviceConfig.Manager); err != nil {
+			if err := depManager.Run(proxy.Url, proxy.Id, serviceConfig.Manager, ""); err != nil {
 				return req.Fail(fmt.Sprintf("depManager.Run('%s', '%s'): %v", proxy.Url, proxy.Id, err))
 			}
 
 			continue
 		}
 
-		installed, err := depManager.Installed(proxy.Url)
+		installed, err := depManager.Installed(proxy.Url, "")
 		if err != nil {
 			return req.Fail(fmt.Sprintf("depManager.Installed('%s'): %v", proxy.Url, err))
 		}
 
 		if !installed {
-			proxySrc, err := source.New(proxy.Url)
-			if err != nil {
-				return req.Fail(fmt.Sprintf("source.New('%s'): %v", proxy.Url, err))
-			}
-			err = depManager.Install(proxySrc)
+			err = depManager.Install(proxy.Url, "")
 			if err != nil {
 				return req.Fail(fmt.Sprintf("depManager.Install: %v", err))
 			}
 		}
 
-		if err := depManager.Run(proxy.Url, proxy.Id, serviceConfig.Manager); err != nil {
+		if err := depManager.Run(proxy.Url, proxy.Id, serviceConfig.Manager, ""); err != nil {
 			return req.Fail(fmt.Sprintf("depManager.Run('%s', '%s'): %v", proxy.Url, proxy.Id, err))
 		}
 	}

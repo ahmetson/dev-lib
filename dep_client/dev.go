@@ -7,7 +7,6 @@ import (
 	"github.com/ahmetson/datatype-lib/data_type/key_value"
 	"github.com/ahmetson/datatype-lib/message"
 	"github.com/ahmetson/dev-lib/dep_handler"
-	"github.com/ahmetson/dev-lib/source"
 	handlerConfig "github.com/ahmetson/handler-lib/config"
 	"time"
 )
@@ -22,11 +21,11 @@ type Interface interface {
 	Attempt(attempt uint8)
 
 	CloseDep(depClient *clientConfig.Client) error
-	Uninstall(src *source.Src) error
-	Run(url string, id string, parent *clientConfig.Client) error
-	Install(src *source.Src) error
+	Uninstall(url string, localSrc string, localBin string) error
+	Run(url string, id string, parent *clientConfig.Client, localBin string) error
+	Install(url string, localSrc string) error
 	Running(depClient *clientConfig.Client) (bool, error)
-	Installed(url string) (bool, error)
+	Installed(url string, localBin string) (bool, error)
 }
 
 func New() (*Client, error) {
@@ -74,10 +73,16 @@ func (c *Client) CloseDep(depClient *clientConfig.Client) error {
 }
 
 // Uninstall the dependency.
-func (c *Client) Uninstall(src *source.Src) error {
+func (c *Client) Uninstall(url, localSrc, localBin string) error {
 	req := message.Request{
 		Command:    dep_handler.UninstallDep,
-		Parameters: key_value.New().Set("src", src),
+		Parameters: key_value.New().Set("url", url),
+	}
+	if len(localSrc) > 0 {
+		req.Parameters.Set("local_src", localSrc)
+	}
+	if len(localBin) > 0 {
+		req.Parameters.Set("local_bin", localBin)
 	}
 
 	err := c.socket.Submit(&req)
@@ -89,7 +94,7 @@ func (c *Client) Uninstall(src *source.Src) error {
 }
 
 // Run the dependency. The url of the dependency. It's id. and the parameters of the parent to connect to.
-func (c *Client) Run(url string, id string, parent *clientConfig.Client) error {
+func (c *Client) Run(url string, id string, parent *clientConfig.Client, localBin string) error {
 	req := message.Request{
 		Command: dep_handler.RunDep,
 		Parameters: key_value.New().
@@ -97,6 +102,10 @@ func (c *Client) Run(url string, id string, parent *clientConfig.Client) error {
 			Set("url", url).
 			Set("id", id),
 	}
+	if len(localBin) > 0 {
+		req.Parameters.Set("local_bin", localBin)
+	}
+
 	reply, err := c.socket.Request(&req)
 	if err != nil {
 		return fmt.Errorf("socket.Submit('%s'): %w", dep_handler.RunDep, err)
@@ -110,11 +119,15 @@ func (c *Client) Run(url string, id string, parent *clientConfig.Client) error {
 }
 
 // Install the dependency from the source code. It compiles it.
-func (c *Client) Install(src *source.Src) error {
+func (c *Client) Install(url, localSrc string) error {
 	req := message.Request{
 		Command:    dep_handler.InstallDep,
-		Parameters: key_value.New().Set("src", src),
+		Parameters: key_value.New().Set("url", url),
 	}
+	if len(localSrc) > 0 {
+		req.Parameters.Set("local_src", localSrc)
+	}
+
 	reply, err := c.socket.Request(&req)
 	if err != nil {
 		return fmt.Errorf("socket.Submit('%s'): %w", dep_handler.InstallDep, err)
@@ -153,10 +166,13 @@ func (c *Client) Running(depClient *clientConfig.Client) (bool, error) {
 }
 
 // Installed checks is the service installed
-func (c *Client) Installed(url string) (bool, error) {
+func (c *Client) Installed(url, localBin string) (bool, error) {
 	req := message.Request{
 		Command:    dep_handler.DepInstalled,
 		Parameters: key_value.New().Set("url", url),
+	}
+	if len(localBin) > 0 {
+		req.Parameters.Set("local_bin", localBin)
 	}
 
 	reply, err := c.socket.Request(&req)

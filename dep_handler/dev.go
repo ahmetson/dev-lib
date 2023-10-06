@@ -7,7 +7,6 @@ import (
 	"github.com/ahmetson/datatype-lib/data_type/key_value"
 	"github.com/ahmetson/datatype-lib/message"
 	"github.com/ahmetson/dev-lib/dep_manager"
-	"github.com/ahmetson/dev-lib/source"
 	"github.com/ahmetson/handler-lib/base"
 	handlerConfig "github.com/ahmetson/handler-lib/config"
 	"github.com/ahmetson/handler-lib/replier"
@@ -58,7 +57,9 @@ func New(manager dep_manager.Interface) (*DepHandler, error) {
 }
 
 // onDepInstalled checks whether the dependency installed or not.
-// Requires the 'url' of the dependency.
+// Requires:
+//   - 'url' string
+//   - 'local_bin' string, optionally
 //
 // Returns 'installed' boolean parameter
 func (h *DepHandler) onDepInstalled(req message.RequestInterface) message.ReplyInterface {
@@ -66,20 +67,29 @@ func (h *DepHandler) onDepInstalled(req message.RequestInterface) message.ReplyI
 	if err != nil {
 		return req.Fail(fmt.Sprintf("req.Parameters.GetString('url'): %v", err))
 	}
+	// optionally can pass a localBin
+	optionalLocalBin, _ := req.RouteParameters().StringValue("local_bin")
 
-	installed := h.manager.Installed(url)
+	dep, err := dep_manager.NewDep(url, "", optionalLocalBin)
+	if err != nil {
+		return req.Fail(fmt.Sprintf("dep_manager.NewDep('%s', '', '%s'): %v", url, optionalLocalBin, err))
+	}
+	h.manager.Lint(dep)
+
+	installed := h.manager.Installed(dep)
 	params := key_value.New().Set("installed", installed)
 	return req.Ok(params)
 }
 
 // onDepRunning checks whether the dependency is running or not.
-// Requires 'dep' of the clientConfig.Client.
+// Requires:
+//   - 'dep' of the clientConfig.Client.
 //
 // Returns 'running' boolean result
 func (h *DepHandler) onDepRunning(req message.RequestInterface) message.ReplyInterface {
 	kv, err := req.RouteParameters().NestedValue("dep")
 	if err != nil {
-		return req.Fail(fmt.Sprintf("req.Parameters.GetKeyValue('client'): %v", err))
+		return req.Fail(fmt.Sprintf("req.Parameters.GetKeyValue('dep'): %v", err))
 	}
 
 	var c clientConfig.Client
@@ -101,22 +111,36 @@ func (h *DepHandler) onDepRunning(req message.RequestInterface) message.ReplyInt
 
 // onInstallDep installs the dependency. if it comes with the source code, then build that as well.
 //
-// Requires the 'src' of a source.Src type, returns nothing.
+// Requires:
+//
+//   - 'url' string type
+//
+//   - 'branch' string type, optionally
+//
+//   - 'local_src' string type, optionally
+//
+//     returns nothing.
 //
 // todo create a publisher that publishes the result of the installation, so user won't wait until installation.
 func (h *DepHandler) onInstallDep(req message.RequestInterface) message.ReplyInterface {
-	kv, err := req.RouteParameters().NestedValue("src")
+	url, err := req.RouteParameters().StringValue("url")
 	if err != nil {
-		return req.Fail(fmt.Sprintf("req.Parameters.GetKeyValue('client'): %v", err))
+		return req.Fail(fmt.Sprintf("req.Parameters.StringValue('url'): %v", err))
 	}
 
-	var src source.Src
-	err = kv.Interface(&src)
+	optionalBranch, _ := req.RouteParameters().StringValue("branch")
+	optionalLocalSrc, _ := req.RouteParameters().StringValue("local_src")
+
+	dep, err := dep_manager.NewDep(url, optionalLocalSrc, "")
 	if err != nil {
-		return req.Fail(fmt.Sprintf("kv.Interface: %v", err))
+		return req.Fail(fmt.Sprintf("dep_manager.NewDep('%s', '%s', ''): %v", url, optionalLocalSrc, err))
+	}
+	h.manager.Lint(dep)
+	if len(optionalBranch) > 0 {
+		dep.SetBranch(optionalBranch)
 	}
 
-	err = h.manager.Install(&src, h.logger)
+	err = h.manager.Install(dep, h.logger)
 	if err != nil {
 		return req.Fail(fmt.Sprintf("h.manager.Install: %v", err))
 	}
@@ -125,9 +149,13 @@ func (h *DepHandler) onInstallDep(req message.RequestInterface) message.ReplyInt
 }
 
 // onRunDep runs the dependency.
-// Requires 'url' string parameter, 'id' string parameter, and the 'parent' of the clientConfig.Client type.
-// Returns nothing.
+// Requires:
+//   - 'url' string parameter,
+//   - 'id' string parameter,
+//   - 'parent' of the clientConfig.Client type.
+//   - 'local_bin' string, optionally
 //
+// Returns nothing.
 // todo make it publish the result through publisher, so user won't wait for the result.
 func (h *DepHandler) onRunDep(req message.RequestInterface) message.ReplyInterface {
 	kv, err := req.RouteParameters().NestedValue("parent")
@@ -153,7 +181,15 @@ func (h *DepHandler) onRunDep(req message.RequestInterface) message.ReplyInterfa
 		return req.Fail(fmt.Sprintf("req.Parameters.GetString('id'): %v", err))
 	}
 
-	err = h.manager.Run(url, id, &parent)
+	optionalLocalBin, _ := req.RouteParameters().StringValue("local_bin")
+
+	dep, err := dep_manager.NewDep(url, "", optionalLocalBin)
+	if err != nil {
+		return req.Fail(fmt.Sprintf("dep_manager.NewDep('%s', '', '%s'): %v", url, optionalLocalBin, err))
+	}
+	h.manager.Lint(dep)
+
+	err = h.manager.Run(dep, id, &parent)
 	if err != nil {
 		return req.Fail(fmt.Sprintf("h.manager.Start(url: '%s', id: '%s'): %v", url, id, err))
 	}
@@ -163,22 +199,31 @@ func (h *DepHandler) onRunDep(req message.RequestInterface) message.ReplyInterfa
 
 // onUninstallDep uninstalls the dependency binary. if it comes with the source code, then deletes source code as well.
 //
-// Requires the 'src' of a source.Src type, returns nothing.
+// Requires:
+//
+//   - 'url' string type.
+//   - 'local_src' string type, optionally.
+//   - 'local_bin' string type, optionally.
+//
+// returns nothing.
 //
 // todo creates a publisher that publishes the result of the installation, so user won't wait until installation.
 func (h *DepHandler) onUninstallDep(req message.RequestInterface) message.ReplyInterface {
-	kv, err := req.RouteParameters().NestedValue("src")
+	url, err := req.RouteParameters().StringValue("url")
 	if err != nil {
-		return req.Fail(fmt.Sprintf("req.Parameters.GetKeyValue('client'): %v", err))
+		return req.Fail(fmt.Sprintf("req.Parameters.StringValue('url'): %v", err))
 	}
 
-	var src source.Src
-	err = kv.Interface(&src)
-	if err != nil {
-		return req.Fail(fmt.Sprintf("kv.Interface: %v", err))
-	}
+	localSrc, _ := req.RouteParameters().StringValue("local_src")
+	localBin, _ := req.RouteParameters().StringValue("local_bin")
 
-	err = h.manager.Uninstall(&src)
+	dep, err := dep_manager.NewDep(url, localSrc, localBin)
+	if err != nil {
+		return req.Fail(fmt.Sprintf("dep_manager.NewDep('%s', '%s', '%s'): %v", url, localSrc, localBin, err))
+	}
+	h.manager.Lint(dep)
+
+	err = h.manager.Uninstall(dep)
 	if err != nil {
 		return req.Fail(fmt.Sprintf("h.manager.Uninstall: %v", err))
 	}
@@ -187,7 +232,7 @@ func (h *DepHandler) onUninstallDep(req message.RequestInterface) message.ReplyI
 }
 
 // onCloseDep stops the dependency.
-// Requires 'source' of the clientConfig.Client type.
+// Requires 'dep' of the clientConfig.Client type.
 // Returns nothing.
 //
 // Todo make it publish the result through publisher, so user won't wait for the result.

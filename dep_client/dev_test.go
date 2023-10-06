@@ -4,7 +4,6 @@ import (
 	clientConfig "github.com/ahmetson/client-lib/config"
 	"github.com/ahmetson/dev-lib/dep_handler"
 	"github.com/ahmetson/dev-lib/dep_manager"
-	"github.com/ahmetson/dev-lib/source"
 	handlerConfig "github.com/ahmetson/handler-lib/config"
 	"github.com/ahmetson/handler-lib/manager_client"
 	"github.com/ahmetson/log-lib"
@@ -102,16 +101,13 @@ func (test *TestDepClientSuite) TearDownTest() {
 func (test *TestDepClientSuite) Test_10_Install() {
 	s := test.Suite.Require
 
-	src, err := source.New(test.url)
-	s().NoError(err)
-
 	// installation must fail since nothing installed
-	installed, err := test.client.Installed(test.url)
+	installed, err := test.client.Installed(test.url, "")
 	s().NoError(err)
 	s().False(installed)
 
 	// There should be a source code
-	err = test.client.Install(src)
+	err = test.client.Install(test.url, "")
 	s().NoError(err)
 
 	// wait a bit until its installed
@@ -120,7 +116,7 @@ func (test *TestDepClientSuite) Test_10_Install() {
 	//
 	// Testing the installed after installation
 	//
-	installed, err = test.client.Installed(test.url)
+	installed, err = test.client.Installed(test.url, "")
 	s().NoError(err)
 	s().True(installed)
 }
@@ -129,23 +125,20 @@ func (test *TestDepClientSuite) Test_10_Install() {
 func (test *TestDepClientSuite) Test_11_Uninstall() {
 	s := test.Suite.Require
 
-	src, err := source.New(test.url)
-	s().NoError(err)
-
 	// The binary must be installed to uninstall
-	installed, err := test.client.Installed(test.url)
+	installed, err := test.client.Installed(test.url, "")
 	s().NoError(err)
 	s().True(installed)
 
 	// Uninstall
-	err = test.client.Uninstall(src)
+	err = test.client.Uninstall(test.url, "", "")
 	s().NoError(err)
 
 	// wait a bit for effect
 	time.Sleep(time.Millisecond * 100)
 
 	// After uninstallation, we should not have the binary
-	installed, err = test.client.Installed(test.url)
+	installed, err = test.client.Installed(test.url, "")
 	s().NoError(err)
 	s().False(installed)
 }

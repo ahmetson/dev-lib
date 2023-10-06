@@ -9,7 +9,6 @@ import (
 	"github.com/ahmetson/config-lib/service"
 	"github.com/ahmetson/datatype-lib/data_type/key_value"
 	"github.com/ahmetson/datatype-lib/message"
-	"github.com/ahmetson/dev-lib/source"
 	handlerConfig "github.com/ahmetson/handler-lib/config"
 	"github.com/ahmetson/handler-lib/manager_client"
 	"github.com/ahmetson/handler-lib/route"
@@ -42,18 +41,18 @@ func (depClient *TestDepClient) CloseDep(*clientConfig.Client) error {
 	return nil
 }
 
-func (depClient *TestDepClient) Uninstall(*source.Src) error {
+func (depClient *TestDepClient) Uninstall(string, string, string) error {
 	return nil
 }
 
-func (depClient *TestDepClient) Run(string, string, *clientConfig.Client) error {
+func (depClient *TestDepClient) Run(string, string, *clientConfig.Client, string) error {
 	if depClient.runFail {
 		return fmt.Errorf("run fail")
 	}
 	return nil
 }
 
-func (depClient *TestDepClient) Install(*source.Src) error {
+func (depClient *TestDepClient) Install(string, string) error {
 	if depClient.installFail {
 		return fmt.Errorf("install fail")
 	}
@@ -66,7 +65,7 @@ func (depClient *TestDepClient) Running(*clientConfig.Client) (bool, error) {
 	}
 	return depClient.running, nil
 }
-func (depClient *TestDepClient) Installed(string) (bool, error) {
+func (depClient *TestDepClient) Installed(string, string) (bool, error) {
 	if depClient.installedFail {
 		return false, fmt.Errorf("installed fail")
 	}
