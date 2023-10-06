@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type TestDepClient struct {
+type MockedDepManager struct {
 	installedFail bool
 	installed     bool
 	installFail   bool
@@ -29,43 +29,43 @@ type TestDepClient struct {
 	running       bool
 }
 
-func (depClient *TestDepClient) Close() error {
+func (depClient *MockedDepManager) Close() error {
 	return nil
 }
 
-func (depClient *TestDepClient) Timeout(time.Duration) {}
+func (depClient *MockedDepManager) Timeout(time.Duration) {}
 
-func (depClient *TestDepClient) Attempt(uint8) {}
+func (depClient *MockedDepManager) Attempt(uint8) {}
 
-func (depClient *TestDepClient) CloseDep(*clientConfig.Client) error {
+func (depClient *MockedDepManager) CloseDep(*clientConfig.Client) error {
 	return nil
 }
 
-func (depClient *TestDepClient) Uninstall(string, string, string) error {
+func (depClient *MockedDepManager) Uninstall(string, string, string) error {
 	return nil
 }
 
-func (depClient *TestDepClient) Run(string, string, *clientConfig.Client, string) error {
+func (depClient *MockedDepManager) Run(string, string, *clientConfig.Client, string) error {
 	if depClient.runFail {
 		return fmt.Errorf("run fail")
 	}
 	return nil
 }
 
-func (depClient *TestDepClient) Install(string, string) error {
+func (depClient *MockedDepManager) Install(string, string) error {
 	if depClient.installFail {
 		return fmt.Errorf("install fail")
 	}
 	return nil
 }
 
-func (depClient *TestDepClient) Running(*clientConfig.Client) (bool, error) {
+func (depClient *MockedDepManager) Running(*clientConfig.Client) (bool, error) {
 	if depClient.runningFail {
 		return false, fmt.Errorf("running fail")
 	}
 	return depClient.running, nil
 }
-func (depClient *TestDepClient) Installed(string, string) (bool, error) {
+func (depClient *MockedDepManager) Installed(string, string) (bool, error) {
 	if depClient.installedFail {
 		return false, fmt.Errorf("installed fail")
 	}
@@ -393,7 +393,7 @@ func (test *TestProxyHandlerSuite) Test_18_ProxyHandler_onLastProxies() {
 func (test *TestProxyHandlerSuite) Test_19_ProxyHandler_onStartProxies() {
 	s := test.Require
 
-	mockedDepManager := &TestDepClient{}
+	mockedDepManager := &MockedDepManager{}
 
 	rule := service.NewHandlerDestination("handler_2")
 	proxyChain2 := &service.ProxyChain{
