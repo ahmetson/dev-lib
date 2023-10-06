@@ -7,3 +7,6 @@
 [submodule "_test_services/uncompilable"]
 	path = _test_services/uncompilable
 	url = https://github.com/ahmetson/test-manager.git
+[submodule "_test_services/with-error"]
+	path = _test_services/with-error
+	url = https://github.com/ahmetson/test-manager.git
