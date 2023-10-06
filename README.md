@@ -62,6 +62,26 @@ The cloud providers also have their own configurations.
 *More information about a configuration engine is available on [config-lib](https://github.com/ahmetson/config-lib).*
 
 ## Dependency manager
+
+> **Todo**
+> 
+> **Problem**: Dep services are attached to the current process.
+> Closing the current process will close the running dependencies.
+> 
+> **Solution**:
+> Spawn the child processes as the service.
+> Use [kardianos/service](https://pkg.go.dev/github.com/kardianos/service) package.
+> 
+> Useful links:
+> - [How to programmamitcally start a linux console on *Reddit*](https://www.reddit.com/r/golang/comments/12qhzfc/how_to_programmatically_start_a_linux_console/)
+> - [How to build a service in Golang on *Medium*](https://levelup.gitconnected.com/how-to-build-a-service-in-golang-9af2b7ed92a7)
+> - [Forking a Deamon process on Unix on *O'Reilly*](https://www.oreilly.com/library/view/python-cookbook/0596001673/ch06s08.html)
+> - [Web server using *kardianos/service* on *sachinsu* gist](https://gist.github.com/sachinsu/78fc6a3b4767df0d45de42f8b140dd4a)
+> - [Cannot start application as a Windows service on *StackOverflow*](https://stackoverflow.com/questions/35605238/cannot-start-a-go-application-exe-as-a-windows-services)
+> - [Detaching currently running go golang process on *Reddit*](https://www.reddit.com/r/golang/comments/vrkhsn/detaching_from_the_currently_running_golang/)
+> - [Start a process and detach it in go on *StackOverflow*](https://stackoverflow.com/questions/23031752/start-a-process-in-go-and-detach-from-it)
+> - [Can I run a golang application as a background service without nohup on *StackOverflow*](https://stackoverflow.com/questions/23031752/start-a-process-in-go-and-detach-from-it)
+
 The distributed systems must run all the services together.
 The services must be reliable and interconnected.
 
