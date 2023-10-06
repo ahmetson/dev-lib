@@ -84,7 +84,7 @@ func (dep *Dep) IsLinted() bool {
 	return len(dep.binPath) > 0 && len(dep.srcPath) > 0
 }
 
-func (dep *Dep) NewInstance() *Dep {
+func (dep *Dep) copy() *Dep {
 	// no check against errors, as the Dep must have the valid source.
 	src, _ := source.New(dep.Url, dep.LocalUrl())
 
@@ -316,7 +316,7 @@ func (manager *DepManager) Run(dep *Dep, id string, parent *clientConfig.Client)
 
 	args := []string{configFlag, idFlag, parentFlag}
 
-	instance := dep.NewInstance()
+	instance := dep.copy()
 
 	manager.exitErr = nil
 	manager.runningDeps[id] = instance
