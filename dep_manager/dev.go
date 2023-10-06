@@ -193,7 +193,7 @@ func (manager *DepManager) Installed(dep *Dep) bool {
 //   - If the dependency binary is not manageable by the DepManager.
 //   - If no source code was given, and source code is not manageable by the DepManager.
 func (manager *DepManager) Install(dep *Dep, parent *log.Logger) error {
-	if manager == nil || dep == nil {
+	if manager == nil || dep == nil || parent == nil {
 		return fmt.Errorf("nil")
 	}
 
