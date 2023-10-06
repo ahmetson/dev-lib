@@ -1,10 +1,12 @@
 package dep_manager
 
 import (
+	"fmt"
 	clientConfig "github.com/ahmetson/client-lib/config"
 	"github.com/ahmetson/log-lib"
 	"github.com/ahmetson/os-lib/path"
 	cp "github.com/otiai10/copy"
+	"github.com/pebbe/zmq4"
 	"github.com/stretchr/testify/suite"
 	"os"
 	"path/filepath"
@@ -49,6 +51,7 @@ func (test *TestDepManagerSuite) SetupTest() {
 		Src:         srcPath,
 		Bin:         binPath,
 		runningDeps: make(map[string]*Dep, 0),
+		timeout:     DefaultTimeout,
 	}
 
 	// A valid source code that we want to download
@@ -67,6 +70,8 @@ func (test *TestDepManagerSuite) SetupTest() {
 // Test_0_New tests the creation of the DepManager managers with the DepManager.SetPaths method.
 func (test *TestDepManagerSuite) Test_0_New() {
 	s := test.Require
+
+	fmt.Printf("Test.New: %s bin is nil dep manager: %v\n", test.depManager.Bin, test.depManager == nil)
 
 	// Before testing, we make sure that the files don't exist
 	exist, err := path.DirExist(test.depManager.Bin)
@@ -550,123 +555,144 @@ func (test *TestDepManagerSuite) Test_19_InvalidCompile() {
 	s().Error(err)
 }
 
-//// Test_20_Run runs the given binary.
-//func (test *TestDepManagerSuite) Test_20_Run() {
-//	s := &test.Suite
-//
-//	src, err := source.New(test.url)
-//	s.Require().NoError(err)
-//
-//	// First, install the manager
-//	err = test.depManager.Install(src, test.logger)
-//	s.NoError(err)
-//
-//	// Let's run it, it should exit immediately
-//	for i := 0; i < 30; i++ {
-//		err = test.depManager.Run(src.Url, test.id, test.parent)
-//		if err == nil {
-//			break
-//		}
-//
-//		time.Sleep(time.Second)
-//	}
-//	s.Require().NoError(err)
-//
-//	// Just to see the exit message
-//	time.Sleep(time.Millisecond * 100)
-//	s.Require().NoError(test.depManager.exitErr)
-//
-//	// Clean out the installed files
-//	err = test.depManager.Uninstall(src)
-//	s.NoError(err)
-//}
-//
-//// Test_21_RunError runs the binary that exits with error.
-//// Dependency manager must show it
-//func (test *TestDepManagerSuite) Test_21_RunError() {
-//	s := &test.Suite
-//
-//	src, err := source.New(test.url)
-//	s.Require().NoError(err)
-//	src.SetBranch("error-exit") // this branch intentionally exits the program with an error.
-//
-//	// First, install the manager
-//	err = test.depManager.Install(src, test.logger)
-//	s.NoError(err)
-//
-//	// Let's run it
-//	for i := 0; i < 30; i++ {
-//		err = test.depManager.Run(src.Url, test.id, test.parent)
-//		if err == nil {
-//			break
-//		}
-//
-//		time.Sleep(time.Second)
-//	}
-//	s.Require().NoError(err)
-//
-//	// Just to see the exit message.
-//	// The 0.1 seconds.
-//	// That's how long the program waits before exit.
-//	// Other 0.2 seconds are for some end of the background work.
-//	time.Sleep(time.Millisecond * 300)
-//	test.logger.Info("exit status", "err", test.depManager.exitErr)
-//	s.Require().Error(test.depManager.exitErr)
-//
-//	// Clean out the installed files
-//	err = test.depManager.Uninstall(src)
-//	s.NoError(err)
-//}
-//
-//// Test_22_Running checks that service is running
-//func (test *TestDepManagerSuite) Test_22_Running() {
-//	s := &test.Suite
-//
-//	client := &clientConfig.Client{
-//		ServiceUrl: "test-manager",
-//		Id:         test.id,
-//		Port:       6000,
-//	}
-//
-//	src, err := source.New(test.url)
-//	s.Require().NoError(err)
-//	src.SetBranch("server") // the sample server is written in this branch.
-//
-//	// First, install the manager
-//	err = test.depManager.Install(src, test.logger)
-//	s.NoError(err)
-//
-//	// Let's run it
-//	for i := 0; i < 30; i++ {
-//		err = test.depManager.Run(src.Url, test.id, test.parent)
-//		if err == nil {
-//			break
-//		}
-//
-//		time.Sleep(time.Second)
-//	}
-//	s.Require().NoError(err)
-//
-//	// waiting for initialization...
-//	time.Sleep(time.Millisecond * 200)
-//	s.Require().NotNil(test.depManager.cmd[test.id]) // cmd == nil indicates that the program was closed
-//
-//	// Check is the service running
-//	, err := test.depManager.Running(client)
-//	s.Require().NoError(err)
-//	s.True(running)
-//
-//	// service is running two seconds. after that running should return false
-//	time.Sleep(time.Second * 3)
-//	s.Require().Nil(test.depManager.cmd[test.id]) // cmd == nil indicates that the program was closed
-//	running, err = test.depManager.Running(client)
-//	s.Require().NoError(err)
-//	s.False(running)
-//
-//	// Clean out the installed files
-//	err = test.depManager.Uninstall(src)
-//	s.NoError(err)
-//}
+// Test_20_Run runs the given binary.
+func (test *TestDepManagerSuite) Test_20_Run() {
+	s := test.Require
+
+	localBin := path.BinPath(filepath.Join(test.localTestDir, "test-manager", "bin"), "test")
+	invalidBin := path.BinPath(filepath.Join(test.localTestDir, "test-manager", "bin"), "non_existing")
+
+	dep, err := NewDep(test.url, "", localBin)
+	s().NoError(err)
+	test.depManager.Lint(dep)
+
+	// no running files
+	_, ok := test.depManager.runningDeps[test.id]
+	s().False(ok)
+
+	// running nil values must exist
+	var depManager *DepManager
+	err = depManager.Run(dep, test.id, test.parent)
+	s().Error(err)
+
+	err = test.depManager.Run(nil, test.id, test.parent)
+	s().Error(err) // missing dep
+	err = test.depManager.Run(dep, "", test.parent)
+	s().Error(err) // missing id
+	err = test.depManager.Run(dep, test.id, nil)
+	s().Error(err) // missing parent
+
+	unLintedDep, err := NewDep(test.url, "", localBin)
+	s().NoError(err)
+	err = test.depManager.Run(unLintedDep, test.id, test.parent)
+	s().Error(err) // dep is not linted
+
+	// the binary doesn't exist
+	invalidDep, err := NewDep(test.url, "", localBin)
+	s().NoError(err)
+	test.depManager.Lint(invalidDep)
+	invalidDep.binPath = invalidBin
+	err = test.depManager.Run(unLintedDep, test.id, test.parent)
+	s().Error(err) // no binary
+
+	// Let's run it, it should exit immediately
+	err = test.depManager.Run(dep, test.id, test.parent)
+	s().NoError(err)
+
+	_, ok = test.depManager.runningDeps[test.id]
+	s().True(ok)
+
+	// trying to run again must fail
+	err = test.depManager.Run(dep, test.id, test.parent)
+	s().Error(err)
+
+	// clean out
+	_, ok = test.depManager.runningDeps[test.id]
+	if ok {
+		onStop := test.depManager.OnStop(test.id)
+		err = <-onStop
+		s().NoError(err)
+
+		_, running := test.depManager.runningDeps[test.id]
+		s().False(running)
+	}
+}
+
+// Test_21_RunError runs the binary that exits with error.
+// If it exists with an error, it must catch it.
+func (test *TestDepManagerSuite) Test_21_RunError() {
+	s := test.Require
+
+	localBin := path.BinPath(filepath.Join(test.localTestDir, "with-error", "bin"), "test")
+
+	dep, err := NewDep(test.url, "", localBin)
+	s().NoError(err)
+	dep.SetBranch("error-exit") // this branch intentionally exits the program with an error.
+	test.depManager.Lint(dep)
+
+	// First, make sure that developer built the binary
+	exist := test.depManager.Installed(dep)
+	s().True(exist)
+
+	// Let's run it
+	err = test.depManager.Run(dep, test.id, test.parent)
+	s().NoError(err)
+
+	// make sure that it exists
+	_, ok := test.depManager.runningDeps[test.id]
+	s().True(ok)
+
+	stopChan := test.depManager.OnStop(test.id)
+	s().NotNil(stopChan)
+
+	err = <-stopChan
+	s().Error(err)
+
+	// the closed service is removed from DepManager
+	_, ok = test.depManager.runningDeps[test.id]
+	s().False(ok)
+
+}
+
+// Test_22_Running checks that service is running
+func (test *TestDepManagerSuite) Test_22_Running() {
+	s := test.Require
+
+	client := &clientConfig.Client{
+		ServiceUrl: "test-manager",
+		Id:         test.id,
+		Port:       6000,
+		TargetType: zmq4.REP,
+	}
+	localBin := path.BinPath(filepath.Join(test.localTestDir, "server", "bin"), "test")
+
+	dep, err := NewDep(test.url, "", localBin)
+	s().NoError(err)
+	dep.SetBranch("server") // the sample server is written in this branch.
+	test.depManager.Lint(dep)
+
+	// First, install the manager
+	// Let's run it
+	err = test.depManager.Run(dep, test.id, test.parent)
+	s().NoError(err)
+	s().NotNil(test.depManager.runningDeps[test.id]) // cmd == nil indicates that the program was closed
+
+	// Check is the service running
+	running, err := test.depManager.Running(client)
+	s().NoError(err)
+	s().True(running)
+
+	// service is running two seconds. after that running should return false
+	onStop := test.depManager.OnStop(test.id)
+	s().NotNil(onStop)
+	err = <-onStop
+	s().NoError(err)
+
+	s().Nil(test.depManager.runningDeps[test.id]) // cmd == nil indicates that the program was closed
+	running, err = test.depManager.Running(client)
+	s().NoError(err)
+	s().False(running)
+}
 
 // In order for 'go test' to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run
