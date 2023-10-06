@@ -13,7 +13,9 @@ import (
 	"github.com/ahmetson/handler-lib/manager_client"
 	"github.com/ahmetson/handler-lib/route"
 	"github.com/ahmetson/log-lib"
+	"github.com/ahmetson/os-lib/path"
 	"github.com/pebbe/zmq4"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -78,6 +80,7 @@ func (depClient *MockedDepManager) Installed(string, string) (bool, error) {
 type TestProxyHandlerSuite struct {
 	suite.Suite
 
+	localTestDir string
 	logger       *log.Logger
 	proxyHandler *ProxyHandler // the manager to test
 	url          string        // dependency source code
@@ -87,6 +90,7 @@ type TestProxyHandlerSuite struct {
 	proxyChain   *service.ProxyChain
 	proxy1       *service.Proxy
 	proxy2       *service.Proxy
+	validProxy   *service.Proxy
 
 	client *client.Socket // imitating the service
 }
@@ -97,8 +101,10 @@ func (test *TestProxyHandlerSuite) SetupTest() {
 	logger, _ := log.New("test", false)
 	test.logger = logger
 
+	test.localTestDir = filepath.Join("../_test_services")
+
 	// A valid source code that we want to download
-	test.url = "github.com/ahmetson/test-service"
+	test.url = "github.com/ahmetson/test-manager"
 	test.id = "test_service"
 	test.handlerId = "test_service_proxy_handler"
 	test.handleFunc = func(req message.RequestInterface) message.ReplyInterface {
@@ -108,8 +114,14 @@ func (test *TestProxyHandlerSuite) SetupTest() {
 	test.proxyChain = &service.ProxyChain{Sources: []string{}, Proxies: []*service.Proxy{},
 		Destination: &service.Rule{Urls: []string{}, Categories: []string{}, Commands: []string{}, ExcludedCommands: []string{}}}
 	test.proxy1 = &service.Proxy{Id: "id_1", Url: "url_1", Category: "category_1"}
+	test.proxy1.Local = &service.Local{}
 	test.proxy2 = &service.Proxy{Id: "id_2", Url: "url_2", Category: "category_2"}
-
+	test.proxy2.Local = &service.Local{}
+	test.validProxy = &service.Proxy{Id: test.id, Url: test.url, Category: "test"}
+	test.validProxy.Local = &service.Local{}
+	fmt.Printf("local test dir: %v, valid proxy %v\n", test.localTestDir, test.validProxy)
+	test.validProxy.LocalSrc = filepath.Join(test.localTestDir, "proxy")
+	test.validProxy.LocalBin = path.BinPath(filepath.Join(test.validProxy.LocalSrc, "bin"), "test")
 }
 
 func (test *TestProxyHandlerSuite) TearDownTest() {}
