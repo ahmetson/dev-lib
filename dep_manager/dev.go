@@ -50,6 +50,16 @@ func NewDep(url, localSrc, localBin string) (*Dep, error) {
 	dep := &Dep{Src: src}
 
 	if len(localBin) > 0 {
+		exist, err := path.FileExist(localBin)
+		if !exist {
+			if err != nil {
+				err = fmt.Errorf("path.FileExist(localBin='%s'): %w", localBin, err)
+			} else {
+				err = fmt.Errorf("path.FileExist(localBin='%s'): false", localBin)
+			}
+			return nil, err
+		}
+
 		dep.binPath = localBin
 	}
 
