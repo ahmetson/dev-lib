@@ -28,7 +28,7 @@ type Dep struct {
 	manageableSrc bool
 	manageableBin bool // if a binary was set by the user, then it's not updatable or deletable
 	cmd           *exec.Cmd
-	done          chan error
+	done          chan error // signalizes when the service finished
 }
 
 // A DepManager Manager builds, runs or stops the dependency services
@@ -75,6 +75,7 @@ func New() *DepManager {
 		Src:         "",
 		Bin:         "",
 		runningDeps: make(map[string]*Dep, 0),
+		timeout:     DefaultTimeout,
 	}
 }
 
@@ -254,26 +255,31 @@ func (manager *DepManager) srcExist(dep *Dep) (bool, error) {
 // If the service is running on another process or on another node,
 // then that service should expose the port.
 func (manager *DepManager) Running(c *clientConfig.Client) (bool, error) {
-	depUrl := clientConfig.Url(c)
+	c.UrlFunc(clientConfig.Url)
 
-	sock, err := zmq4.NewSocket(zmq4.REP)
+	c.UrlFunc(func(cConfig *clientConfig.Client) string {
+		return fmt.Sprintf("tcp://127.0.0.1:%d", cConfig.Port)
+	})
+
+	fmt.Printf("Running: url %s, timeout %s, now: %v\n", c.Url(), manager.timeout.String(), time.Now())
+
+	sock, err := client.New(c)
 	if err != nil {
-		return false, fmt.Errorf("zmq.NewSocket: %w", err)
+		return false, fmt.Errorf("client.New: %w", err)
 	}
-	bindErr := sock.Bind(depUrl)
+	sock.Attempt(1).Timeout(manager.timeout)
 
-	if bindErr != nil {
-		return true, nil
+	reply, err := sock.RawRequest("empty_message")
+	if err != nil || reply == nil {
+		return false, nil
 	}
 
-	err = sock.Close()
-	if err != nil {
+	closeErr := sock.Close()
+	if closeErr != nil {
 		return false, fmt.Errorf("socket.Close: %w", err)
 	}
 
-	// if bind error, then its running
-	// if nil bind error, then it's not running
-	return false, nil
+	return true, nil
 }
 
 // The build the application from source code.
