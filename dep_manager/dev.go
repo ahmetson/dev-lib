@@ -51,7 +51,9 @@ func NewDep(url, localSrc, localBin string) (*Dep, error) {
 		return nil, fmt.Errorf("source.New('%s'): %w", url, err)
 	}
 
-	dep := &Dep{Src: src}
+	dep := &Dep{
+		Src: src,
+	}
 
 	if len(localBin) > 0 {
 		exist, err := path.FileExist(localBin)
@@ -307,17 +309,42 @@ func (manager *DepManager) build(dep *Dep, logger *log.Logger) error {
 	return nil
 }
 
+// OnStop returns a signal through the channel when the dependency spawned by the DepManager stops.
+// If the dep is not existing, then it will simply return error.
+func (manager *DepManager) OnStop(id string) chan error {
+	dep, ok := manager.runningDeps[id]
+	if !ok {
+		return nil
+	}
+
+	if dep.cmd == nil {
+		return nil
+	}
+
+	return dep.done
+}
+
 // Run runs the binary.
 // If it fails to run, then it will return an error.
 //
 // Whether the binary is manageable or not doesn't matter.
 func (manager *DepManager) Run(dep *Dep, id string, parent *clientConfig.Client) error {
-	if manager == nil || dep == nil {
-		return fmt.Errorf("nil")
+	if manager == nil || dep == nil || parent == nil || len(id) == 0 {
+		return fmt.Errorf("nil or no id")
 	}
 
 	if !dep.IsLinted() {
 		return fmt.Errorf("depManager is not linted. Call DepManager.Lint(Dep) first")
+	}
+
+	_, ok := manager.runningDeps[id]
+	if ok {
+		return fmt.Errorf("the dep with id '%s' already running", id)
+	}
+
+	ok = manager.Installed(dep)
+	if !ok {
+		return fmt.Errorf("no binary. Call DepManager.Install(Dep, log.Logger) first")
 	}
 
 	configFlag := fmt.Sprintf("--url=%s", dep.Url)
@@ -328,9 +355,7 @@ func (manager *DepManager) Run(dep *Dep, id string, parent *clientConfig.Client)
 
 	instance := dep.copy()
 
-	manager.exitErr = nil
 	manager.runningDeps[id] = instance
-	manager.onStop(id, instance.done)
 
 	logger, err := log.New(id, false)
 	if err != nil {
@@ -355,20 +380,16 @@ func (manager *DepManager) Run(dep *Dep, id string, parent *clientConfig.Client)
 	return nil
 }
 
-// onStop invoked when the dependency stops. It cleans out the dependency parameters.
-func (manager *DepManager) onStop(id string, errChan chan error) {
-	go func() {
-		err := <-errChan
-		manager.exitErr = err
-		delete(manager.runningDeps, id)
-
-	}()
-}
-
-// wait until the dependency stops
+// The wait is invoked if the spawned dependency stops.
+// The dependencies are running asynchronously.
+// In order to call this function, you must use the DepManager.Close() method.
+// If the Close signal was sent to the spawned child, then
+// this method will be called automatically by the operating system.
 func (manager *DepManager) wait(id string) {
 	go func() {
-		manager.runningDeps[id].done <- manager.runningDeps[id].cmd.Wait()
+		err := manager.runningDeps[id].cmd.Wait() // it can return an error
+		manager.runningDeps[id].done <- err
+		delete(manager.runningDeps, id)
 	}()
 }
 
