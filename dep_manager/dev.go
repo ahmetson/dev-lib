@@ -12,13 +12,17 @@ import (
 	"github.com/ahmetson/os-lib/path"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/pebbe/zmq4"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
+
+// DefaultTimeout is the default time to wait before considering the message is not delivered.
+// DepManager.Running method uses this value before considering the socket as not running.
+const DefaultTimeout = time.Second
 
 type Dep struct {
 	*source.Src
