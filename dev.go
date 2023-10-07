@@ -81,11 +81,13 @@ func (ctx *Context) Type() ContextType {
 
 // Close the dep handler and config handler. The dep manager client is not closed
 func (ctx *Context) Close() error {
-	if ctx.engineStarted {
-		if err := ctx.Config().Close(); err != nil {
-			return fmt.Errorf("ctx.Config.Close: %w", err)
+	if ctx.proxyHandlerManager != nil {
+		if ctx.proxyHandlerManager != nil {
+			if err := ctx.proxyHandlerManager.Close(); err != nil {
+				return fmt.Errorf("ctx.proxyHandlerManager.Close: %w", err)
+			}
 		}
-		ctx.engineStarted = false
+		ctx.proxyHandlerManager = nil
 	}
 
 	if ctx.depHandlerManager != nil {
@@ -95,13 +97,11 @@ func (ctx *Context) Close() error {
 		ctx.depHandlerManager = nil
 	}
 
-	if ctx.proxyHandlerManager != nil {
-		if ctx.proxyHandlerManager != nil {
-			if err := ctx.proxyHandlerManager.Close(); err != nil {
-				return fmt.Errorf("ctx.proxyHandlerManager.Close: %w", err)
-			}
+	if ctx.engineStarted {
+		if err := ctx.Config().Close(); err != nil {
+			return fmt.Errorf("ctx.Config.Close: %w", err)
 		}
-		ctx.proxyHandlerManager = nil
+		ctx.engineStarted = false
 	}
 
 	return nil
