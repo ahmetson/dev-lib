@@ -422,6 +422,9 @@ func (proxyHandler *ProxyHandler) Start() error {
 	if len(proxyHandler.Handler.Routes) > 0 {
 		return fmt.Errorf("writing routes is not allowed")
 	}
+	if len(proxyHandler.serviceId) == 0 {
+		return fmt.Errorf("missing serviceId. Call ProxyHandler.SetServiceId first")
+	}
 
 	if err := proxyHandler.setRoutes(); err != nil {
 		return fmt.Errorf("proxyHandler.setRoutes: %w", err)
