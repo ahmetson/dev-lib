@@ -207,6 +207,7 @@ func (ctx *Context) StartProxyHandler() error {
 	if err != nil {
 		return fmt.Errorf("proxyHandler.SetLogger: %w", err)
 	}
+	proxyHandler.SetServiceId(ctx.serviceId)
 	err = proxyHandler.Start()
 	if err != nil {
 		return fmt.Errorf("proxyHandler.Start: %w", err)
