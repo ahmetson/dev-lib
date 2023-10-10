@@ -353,7 +353,7 @@ func (proxyHandler *ProxyHandler) setRoutes() error {
 	if err := proxyHandler.Handler.Route(SetUnits, proxyHandler.onSetUnits); err != nil {
 		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", SetUnits, err)
 	}
-	if err := proxyHandler.Handler.Route(ProxyChainsByLastId, proxyHandler.onSetUnits); err != nil {
+	if err := proxyHandler.Handler.Route(ProxyChainsByLastId, proxyHandler.onProxyChainsByLastId); err != nil {
 		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", ProxyChainsByLastId, err)
 	}
 	if err := proxyHandler.Handler.Route(Units, proxyHandler.onUnits); err != nil {
