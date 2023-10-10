@@ -20,8 +20,7 @@ const (
 	// Commands of the proxy handler
 	//
 
-	// SetProxyChain command sets a new proxy chain
-	SetProxyChain       = "set-proxy-chain"
+	SetProxyChain       = "set-proxy-chain"         // SetProxyChain is a route command that sets a new proxy chain
 	SetUnits            = "set-units"               // route command that sets the proxy units
 	ProxyChainsByLastId = "proxy-chains-by-last-id" // returns list of proxy chains by the id of the last proxy
 	Units               = "units"                   // route command that returns a list of destination units for a rule
@@ -336,6 +335,14 @@ func (proxyHandler *ProxyHandler) onProxyChains(req message.RequestInterface) me
 	return req.Ok(params)
 }
 
+func (proxyHandler *ProxyHandler) onClose(request message.RequestInterface) message.ReplyInterface {
+	if err := proxyHandler.closeProxies(); err != nil {
+		return request.Fail(fmt.Sprintf("proxyHandler.closeProxies: %v", err))
+	}
+
+	return proxyHandler.Handler.Manager.SetClose(request)
+}
+
 func (proxyHandler *ProxyHandler) setRoutes() error {
 	if err := proxyHandler.Handler.Route(SetProxyChain, proxyHandler.onSetProxyChain); err != nil {
 		return fmt.Errorf("proxyHandler.Handler.Route('%s'): %w", SetProxyChain, err)
@@ -363,14 +370,6 @@ func (proxyHandler *ProxyHandler) setRoutes() error {
 	}
 
 	return nil
-}
-
-func (proxyHandler *ProxyHandler) onClose(request message.RequestInterface) message.ReplyInterface {
-	if err := proxyHandler.closeProxies(); err != nil {
-		return request.Fail(fmt.Sprintf("proxyHandler.closeProxies: %v", err))
-	}
-
-	return proxyHandler.Handler.Manager.SetClose(request)
 }
 
 // closeProxies will close all proxies that have generated configuration
