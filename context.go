@@ -17,7 +17,10 @@ type Interface interface {
 	StartDepManager() error
 	StartProxyHandler() error
 	Close() error // Close the dep handler and config handler. The dep manager client is not closed
-	Running() bool
+	IsRunning() bool
+	IsConfigRunning() bool
+	IsDepManagerRunning() bool
+	IsProxyHandlerRunning() bool
 	SetService(string, string) // SetService sets the service parameters
 }
 

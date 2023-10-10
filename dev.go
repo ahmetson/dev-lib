@@ -41,8 +41,20 @@ func NewDev() (*Context, error) {
 	return ctx, nil
 }
 
-func (ctx *Context) Running() bool {
+func (ctx *Context) IsRunning() bool {
 	return ctx.engineStarted && ctx.depHandlerManager != nil && ctx.proxyHandlerManager != nil
+}
+
+func (ctx *Context) IsConfigRunning() bool {
+	return ctx.engineStarted
+}
+
+func (ctx *Context) IsDepManagerRunning() bool {
+	return ctx.depHandlerManager != nil
+}
+
+func (ctx *Context) IsProxyHandlerRunning() bool {
+	return ctx.proxyHandlerManager != nil
 }
 
 // SetConfig sets the config engine of the given type.

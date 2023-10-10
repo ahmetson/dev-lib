@@ -172,7 +172,7 @@ func (test *TestDepClientSuite) Test_11_Uninstall() {
 //
 //	// check that service is running
 //	test.logger.Info("check dependency status")
-//	running, err := test.client.Running(depClient)
+//	running, err := test.client.IsRunning(depClient)
 //	s().NoError(err)
 //	s().True(running)
 //	test.logger.Info("status returned from dependency manager", "running", running, "error", err)
@@ -188,7 +188,7 @@ func (test *TestDepClientSuite) Test_11_Uninstall() {
 //
 //	// Checking for a running source after it was closed must fail
 //	test.logger.Info("check again the dependency status")
-//	running, err = test.client.Running(depClient)
+//	running, err = test.client.IsRunning(depClient)
 //	test.logger.Info("closed dependency status returned", "running", running, "error", err)
 //	s().NoError(err)
 //	s().False(running)
