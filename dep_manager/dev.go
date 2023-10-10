@@ -267,8 +267,6 @@ func (manager *DepManager) Running(c *clientConfig.Client) (bool, error) {
 		return fmt.Sprintf("tcp://127.0.0.1:%d", cConfig.Port)
 	})
 
-	fmt.Printf("Running: url %s, timeout %s, now: %v\n", c.Url(), manager.timeout.String(), time.Now())
-
 	sock, err := client.New(c)
 	if err != nil {
 		return false, fmt.Errorf("client.New: %w", err)
