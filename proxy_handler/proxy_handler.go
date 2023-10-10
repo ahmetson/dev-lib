@@ -386,7 +386,9 @@ func (proxyHandler *ProxyHandler) closeProxies() error {
 
 	serviceConfig, err := proxyHandler.engine.Service(proxyHandler.serviceId)
 	if err != nil {
-		return fmt.Errorf("engine.Service('%s'): %w", proxyHandler.serviceId, err)
+		// todo when the errors implemented make sure that error is NoStart
+		//return fmt.Errorf("engine.Service('%s'): %w", proxyHandler.serviceId, err)
+		return nil
 	}
 
 	if len(serviceConfig.Sources) == 0 {
