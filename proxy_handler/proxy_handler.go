@@ -340,6 +340,9 @@ func (proxyHandler *ProxyHandler) onClose(request message.RequestInterface) mess
 		return request.Fail(fmt.Sprintf("proxyHandler.closeProxies: %v", err))
 	}
 
+	proxyHandler.proxyChains = make([]*service.ProxyChain, 0)
+	proxyHandler.proxyUnits = make(map[*service.Rule][]*service.Unit, 0)
+
 	return proxyHandler.Handler.Manager.SetClose(request)
 }
 

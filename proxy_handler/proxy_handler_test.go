@@ -535,6 +535,7 @@ func (test *TestProxyHandlerSuite) Test_19_ProxyHandler_onStartProxies() {
 	s().False(reply.IsOK())
 
 	// clean out
+	// we won't close last proxies as the mocked dep manager didn't start them actually.
 	err = handler.engine.Close()
 	s().Nil(err)
 }
