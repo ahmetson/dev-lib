@@ -17,7 +17,7 @@ type Interface interface {
 	Install(dep *Dep, logger *log.Logger) error
 
 	// Run the dependency with the given id and parent.
-	Run(dep *Dep, id string, parent *clientConfig.Client) error
+	Run(dep *Dep, id string, optionalParent ...*clientConfig.Client) error
 	// Uninstall the dependency.
 	Uninstall(dep *Dep) error
 

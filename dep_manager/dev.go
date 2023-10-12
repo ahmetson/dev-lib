@@ -325,10 +325,18 @@ func (manager *DepManager) OnStop(id string) chan error {
 // Run runs the binary.
 // If it fails to run, then it will return an error.
 //
-// Whether the binary is manageable or not doesn't matter.
-func (manager *DepManager) Run(dep *Dep, id string, parent *clientConfig.Client) error {
-	if manager == nil || dep == nil || parent == nil || len(id) == 0 {
+// Note that, services can crash during the initialization.
+// In that case, you should use DepManager.OnStop method.
+//
+// If a parent is given, it's passed as ParentFlag.
+// Todo, move all Flags from service-lib to config-lig.
+// Todo, use the ParentFlag from the config lig
+func (manager *DepManager) Run(dep *Dep, id string, optionalParent ...*clientConfig.Client) error {
+	if manager == nil || dep == nil || len(id) == 0 {
 		return fmt.Errorf("nil or no id")
+	}
+	if len(optionalParent) > 1 {
+		return fmt.Errorf("too many optional parameters, either no parameter or 1 parameter required")
 	}
 
 	if !dep.IsLinted() {
@@ -347,9 +355,19 @@ func (manager *DepManager) Run(dep *Dep, id string, parent *clientConfig.Client)
 
 	configFlag := fmt.Sprintf("--url=%s", dep.Url)
 	idFlag := fmt.Sprintf("--id=%s", id)
-	parentFlag := fmt.Sprintf("--parent=%s", clientConfig.Url(parent))
 
-	args := []string{configFlag, idFlag, parentFlag}
+	args := make([]string, 2, 3)
+	args[0] = configFlag
+	args[1] = idFlag
+
+	if len(optionalParent) == 1 {
+		parentKv, err := key_value.NewFromInterface(optionalParent[0])
+		if err != nil {
+			return fmt.Errorf("optionalParent: key_value.NewFromInterface(parent='%v'): %w", optionalParent[0], err)
+		}
+		parentFlag := fmt.Sprintf("--parent=%s", parentKv.String())
+		args = append(args, parentFlag)
+	}
 
 	instance := dep.copy()
 
