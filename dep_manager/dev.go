@@ -159,6 +159,15 @@ func (manager *DepManager) SetPaths(srcPath string, binPath string) error {
 
 // Close the dependency
 func (manager *DepManager) Close(c *clientConfig.Client) error {
+	// Make sure it's running
+	running, err := manager.Running(c)
+	if err != nil {
+		return fmt.Errorf("manager.Running(client='%v'): %w", *c, err)
+	}
+	if !running {
+		return nil
+	}
+
 	sock, err := client.New(c)
 	if err != nil {
 		return fmt.Errorf("zmq.NewSocket: %w", err)
@@ -168,13 +177,21 @@ func (manager *DepManager) Close(c *clientConfig.Client) error {
 		Command:    "close",
 		Parameters: key_value.New(),
 	}
-	reply, err := sock.Request(closeRequest)
-	if err != nil {
-		return fmt.Errorf("socket.Request('close'): %w", err)
+
+	sock.Timeout(manager.timeout).Attempt(1)
+
+	_, err = sock.Request(closeRequest)
+	if err == nil {
+		return fmt.Errorf("socket.Request('close'): must exist with error since service closed before replying back")
 	}
 
-	if !reply.IsOK() {
-		return fmt.Errorf("dependency replied: %s", reply.ErrorMessage())
+	running, err = manager.Running(c)
+	if err != nil {
+		return fmt.Errorf("socket.Request('close'): manager.Running(client='%v'): %w", *c, err)
+	}
+
+	if running {
+		return fmt.Errorf("manager is running even after closing")
 	}
 
 	err = sock.Close()
