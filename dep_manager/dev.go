@@ -269,8 +269,13 @@ func (manager *DepManager) Running(c *clientConfig.Client) (bool, error) {
 	}
 	sock.Attempt(1).Timeout(manager.timeout)
 
-	reply, err := sock.RawRequest("empty_message")
-	if err != nil || reply == nil {
+	req := &message.Request{
+		Command:    "heartbeat",
+		Parameters: key_value.New(),
+	}
+
+	_, err = sock.Request(req)
+	if err != nil {
 		return false, nil
 	}
 
