@@ -3,6 +3,7 @@ package context
 import (
 	"fmt"
 	configClient "github.com/ahmetson/config-lib/client"
+	"github.com/ahmetson/dev-lib/dep_client"
 	"github.com/ahmetson/dev-lib/proxy_client"
 	"github.com/ahmetson/os-lib/arg"
 )
@@ -22,6 +23,8 @@ type Interface interface {
 	IsDepManagerRunning() bool
 	IsProxyHandlerRunning() bool
 	SetService(string, string) // SetService sets the service parameters
+	SetDepClient(p dep_client.Interface) error
+	DepClient() dep_client.Interface
 }
 
 // A New orchestra. Optionally pass the type of the context.

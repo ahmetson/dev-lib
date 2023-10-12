@@ -25,6 +25,7 @@ type Context struct {
 	engineStarted       bool // is the config engine started or not?
 	serviceId           string
 	serviceUrl          string
+	depClient           *dep_client.Client
 }
 
 // NewDev creates Developer context.
@@ -55,6 +56,20 @@ func (ctx *Context) IsDepManagerRunning() bool {
 
 func (ctx *Context) IsProxyHandlerRunning() bool {
 	return ctx.proxyHandlerManager != nil
+}
+
+func (ctx *Context) SetDepClient(dc dep_client.Interface) error {
+	devDc, ok := dc.(*dep_client.Client)
+	if !ok {
+		return fmt.Errorf("only dev context dep client supported")
+	}
+	ctx.depClient = devDc
+
+	return nil
+}
+
+func (ctx *Context) DepClient() dep_client.Interface {
+	return ctx.depClient
 }
 
 // SetConfig sets the config engine of the given type.
