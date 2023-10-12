@@ -145,7 +145,12 @@ func (proxyHandler *ProxyHandler) onProxyChainByRule(req message.RequestInterfac
 			Destination: service.NewServiceDestination(), // service.NewServiceDestination returns empty rule
 		}
 	}
-	params := key_value.New().Set("proxy_chain", proxyChain)
+	proxyChainKv, err := key_value.NewFromInterface(proxyChain)
+	if err != nil {
+		return req.Fail(fmt.Sprintf("key_value.NewFromInterface('proxy_chain', rule='%v'): %v", rule, err))
+	}
+
+	params := key_value.New().Set("proxy_chain", proxyChainKv)
 
 	return req.Ok(params)
 }
@@ -207,7 +212,16 @@ func (proxyHandler *ProxyHandler) onProxyChainsByLastId(req message.RequestInter
 		}
 	}
 
-	params := key_value.New().Set("proxy_chains", proxyChains)
+	proxyChainKvs := make([]key_value.KeyValue, len(proxyChains))
+	for i := range proxyChains {
+		proxyChainKv, err := key_value.NewFromInterface(proxyChains[i])
+		if err != nil {
+			return req.Fail(fmt.Sprintf("key_value.NewFromInterface(proxyChains[%d]): %v", i, err))
+		}
+		proxyChainKvs[i] = proxyChainKv
+	}
+
+	params := key_value.New().Set("proxy_chains", proxyChainKvs)
 
 	return req.Ok(params)
 }
@@ -229,16 +243,23 @@ func (proxyHandler *ProxyHandler) onUnits(req message.RequestInterface) message.
 		return req.Fail("the 'rule' parameter is not valid")
 	}
 
-	units := make([]*service.Unit, 0)
+	unitKvs := make([]key_value.KeyValue, 0)
 
 	for firstRule := range proxyHandler.proxyUnits {
 		if service.IsEqualRule(firstRule, &rule) {
-			units = proxyHandler.proxyUnits[firstRule]
+			for i := range proxyHandler.proxyUnits[firstRule] {
+				unit := proxyHandler.proxyUnits[firstRule][i]
+				unitKv, err := key_value.NewFromInterface(unit)
+				if err != nil {
+					return req.Fail(fmt.Sprintf("key_value.NewFromInterface(units[%d], rule='%v'): %v", i, rule, err))
+				}
+				unitKvs = append(unitKvs, unitKv)
+			}
 			break
 		}
 	}
 
-	params := key_value.New().Set("units", units)
+	params := key_value.New().Set("units", unitKvs)
 
 	return req.Ok(params)
 }
@@ -248,7 +269,16 @@ func (proxyHandler *ProxyHandler) onUnits(req message.RequestInterface) message.
 func (proxyHandler *ProxyHandler) onLastProxies(req message.RequestInterface) message.ReplyInterface {
 	proxies := service.LastProxies(proxyHandler.proxyChains)
 
-	params := key_value.New().Set("proxies", proxies)
+	proxyKvs := make([]key_value.KeyValue, len(proxies))
+	for i := range proxies {
+		kv, err := key_value.NewFromInterface(proxies[i])
+		if err != nil {
+			return req.Fail(fmt.Sprintf("key_value.NewFromInterface(proxies[%d]): %v", i, err))
+		}
+		proxyKvs[i] = kv
+	}
+
+	params := key_value.New().Set("proxies", proxyKvs)
 
 	return req.Ok(params)
 }
@@ -330,7 +360,16 @@ func (proxyHandler *ProxyHandler) onProxyChains(req message.RequestInterface) me
 	proxyChains := make([]*service.ProxyChain, 0, len(proxyHandler.proxyChains))
 	proxyChains = append(proxyChains, proxyHandler.proxyChains...)
 
-	params := key_value.New().Set("proxy_chains", proxyHandler.proxyChains)
+	proxyChainKvs := make([]key_value.KeyValue, len(proxyChains))
+	for i := range proxyChains {
+		proxyChainKv, err := key_value.NewFromInterface(proxyChains[i])
+		if err != nil {
+			return req.Fail(fmt.Sprintf("key_value.NewFromInterface(proxyChains[%d]): %v", i, err))
+		}
+		proxyChainKvs[i] = proxyChainKv
+	}
+
+	params := key_value.New().Set("proxy_chains", proxyChainKvs)
 
 	return req.Ok(params)
 }
