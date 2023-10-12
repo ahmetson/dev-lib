@@ -263,10 +263,6 @@ func (manager *DepManager) srcExist(dep *Dep) (bool, error) {
 func (manager *DepManager) Running(c *clientConfig.Client) (bool, error) {
 	c.UrlFunc(clientConfig.Url)
 
-	c.UrlFunc(func(cConfig *clientConfig.Client) string {
-		return fmt.Sprintf("tcp://127.0.0.1:%d", cConfig.Port)
-	})
-
 	sock, err := client.New(c)
 	if err != nil {
 		return false, fmt.Errorf("client.New: %w", err)
