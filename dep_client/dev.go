@@ -64,9 +64,21 @@ func (c *Client) CloseDep(depClient *clientConfig.Client) error {
 			Set("dep", depClient),
 	}
 
-	err := c.socket.Submit(&req)
+	if c == nil {
+		return fmt.Errorf("dep manager not initialized")
+	}
+
+	if c.socket == nil {
+		return fmt.Errorf("dep manager socket was closed")
+	}
+
+	reply, err := c.socket.Request(&req)
 	if err != nil {
 		return fmt.Errorf("socket.Submit('%s'): %w", dep_handler.CloseDep, err)
+	}
+
+	if !reply.IsOK() {
+		return fmt.Errorf("c.socket.Requeset(request='%v'): reply failed with: %s", req, reply.ErrorMessage())
 	}
 
 	return nil
