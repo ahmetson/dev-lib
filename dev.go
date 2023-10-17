@@ -203,6 +203,16 @@ func (ctx *Context) StartDepManager() error {
 		return fmt.Errorf("manager_client.New('dep_handler'): %w", err)
 	}
 
+	depClient, err := dep_client.New()
+	if err != nil {
+		return fmt.Errorf("dep_client.New: %w", err)
+	}
+
+	err = ctx.SetDepClient(depClient)
+	if err != nil {
+		return fmt.Errorf("ctx.SetDepClient: %w", err)
+	}
+
 	return nil
 }
 
