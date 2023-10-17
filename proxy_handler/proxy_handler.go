@@ -246,17 +246,18 @@ func (proxyHandler *ProxyHandler) onUnits(req message.RequestInterface) message.
 	unitKvs := make([]key_value.KeyValue, 0)
 
 	for firstRule := range proxyHandler.proxyUnits {
-		if service.IsEqualRule(firstRule, &rule) {
-			for i := range proxyHandler.proxyUnits[firstRule] {
-				unit := proxyHandler.proxyUnits[firstRule][i]
-				unitKv, err := key_value.NewFromInterface(unit)
-				if err != nil {
-					return req.Fail(fmt.Sprintf("key_value.NewFromInterface(units[%d], rule='%v'): %v", i, rule, err))
-				}
-				unitKvs = append(unitKvs, unitKv)
-			}
-			break
+		if !service.IsEqualRule(firstRule, &rule) {
+			continue
 		}
+		for i := range proxyHandler.proxyUnits[firstRule] {
+			unit := proxyHandler.proxyUnits[firstRule][i]
+			unitKv, err := key_value.NewFromInterface(unit)
+			if err != nil {
+				return req.Fail(fmt.Sprintf("key_value.NewFromInterface(units[%d], rule='%v'): %v", i, rule, err))
+			}
+			unitKvs = append(unitKvs, unitKv)
+		}
+		break
 	}
 
 	params := key_value.New().Set("units", unitKvs)
